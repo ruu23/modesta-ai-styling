@@ -9,6 +9,8 @@ import { MeasurementsTab } from '@/components/settings/MeasurementsTab';
 import { AccountTab } from '@/components/settings/AccountTab';
 import { SubscriptionTab } from '@/components/settings/SubscriptionTab';
 import { ThemeToggle } from '@/components/theme';
+import { AppLayout } from '@/components/layout';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
 const Settings = () => {
   const {
@@ -37,87 +39,92 @@ const Settings = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link to="/">
-              <Button variant="ghost" size="icon">
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-            </Link>
-            <div>
-              <h1 className="text-xl font-semibold">Settings</h1>
-              <p className="text-sm text-muted-foreground">Manage your account and preferences</p>
+    <AppLayout showBottomNav={true}>
+      <div className="min-h-screen bg-background">
+        {/* Header */}
+        <header className="sticky top-0 z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
+          <div className="container mx-auto px-3 md:px-4 h-14 md:h-16 flex items-center justify-between">
+            <div className="flex items-center gap-3 md:gap-4">
+              <Link to="/">
+                <Button variant="ghost" size="icon" className="min-w-[44px] min-h-[44px]">
+                  <ArrowLeft className="h-5 w-5" />
+                </Button>
+              </Link>
+              <div>
+                <h1 className="text-lg md:text-xl font-semibold">Settings</h1>
+                <p className="text-xs md:text-sm text-muted-foreground hidden sm:block">Manage your account and preferences</p>
+              </div>
             </div>
+            <ThemeToggle />
           </div>
-          <ThemeToggle />
-        </div>
-      </header>
+        </header>
 
-      {/* Main Content */}
-      <main className="container mx-auto px-4 py-8">
-        <Tabs defaultValue="profile" className="space-y-8">
-          {/* Tab Navigation */}
-          <TabsList className="w-full justify-start h-auto p-1 bg-muted/50 rounded-lg flex-wrap">
-            {tabs.map((tab) => (
-              <TabsTrigger 
-                key={tab.id}
-                value={tab.id}
-                className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm px-4 py-2.5"
-              >
-                <tab.icon className="h-4 w-4" />
-                <span className="hidden sm:inline">{tab.label}</span>
-              </TabsTrigger>
-            ))}
-          </TabsList>
+        {/* Main Content */}
+        <main className="container mx-auto px-3 md:px-4 py-4 md:py-8">
+          <Tabs defaultValue="profile" className="space-y-4 md:space-y-8">
+            {/* Tab Navigation - Scrollable on mobile */}
+            <ScrollArea className="w-full whitespace-nowrap">
+              <TabsList className="inline-flex h-auto p-1 bg-muted/50 rounded-lg">
+                {tabs.map((tab) => (
+                  <TabsTrigger 
+                    key={tab.id}
+                    value={tab.id}
+                    className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm px-3 md:px-4 py-2.5 min-h-[44px]"
+                  >
+                    <tab.icon className="h-4 w-4" />
+                    <span className="text-sm">{tab.label}</span>
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+              <ScrollBar orientation="horizontal" className="invisible" />
+            </ScrollArea>
 
-          {/* Profile Tab */}
-          <TabsContent value="profile" className="animate-fade-in">
-            <ProfileTab 
-              profile={profile}
-              stats={stats}
-              onUpdate={updateProfile}
-            />
-          </TabsContent>
+            {/* Profile Tab */}
+            <TabsContent value="profile" className="animate-fade-in">
+              <ProfileTab 
+                profile={profile}
+                stats={stats}
+                onUpdate={updateProfile}
+              />
+            </TabsContent>
 
-          {/* Preferences Tab */}
-          <TabsContent value="preferences" className="animate-fade-in">
-            <PreferencesTab 
-              preferences={preferences}
-              onUpdateStyle={updateStylePreferences}
-              onUpdateNotifications={updateNotifications}
-              onUpdatePreferences={updatePreferences}
-            />
-          </TabsContent>
+            {/* Preferences Tab */}
+            <TabsContent value="preferences" className="animate-fade-in">
+              <PreferencesTab 
+                preferences={preferences}
+                onUpdateStyle={updateStylePreferences}
+                onUpdateNotifications={updateNotifications}
+                onUpdatePreferences={updatePreferences}
+              />
+            </TabsContent>
 
-          {/* Measurements Tab */}
-          <TabsContent value="measurements" className="animate-fade-in">
-            <MeasurementsTab 
-              measurements={measurements}
-              measurementUnit={preferences.measurementUnit}
-              onUpdateMeasurements={updateMeasurements}
-              onUpdateDetailedMeasurements={updateDetailedMeasurements}
-            />
-          </TabsContent>
+            {/* Measurements Tab */}
+            <TabsContent value="measurements" className="animate-fade-in">
+              <MeasurementsTab 
+                measurements={measurements}
+                measurementUnit={preferences.measurementUnit}
+                onUpdateMeasurements={updateMeasurements}
+                onUpdateDetailedMeasurements={updateDetailedMeasurements}
+              />
+            </TabsContent>
 
-          {/* Account Tab */}
-          <TabsContent value="account" className="animate-fade-in">
-            <AccountTab 
-              account={account}
-              onUpdateAccount={updateAccount}
-              onUpdatePrivacy={updatePrivacy}
-            />
-          </TabsContent>
+            {/* Account Tab */}
+            <TabsContent value="account" className="animate-fade-in">
+              <AccountTab 
+                account={account}
+                onUpdateAccount={updateAccount}
+                onUpdatePrivacy={updatePrivacy}
+              />
+            </TabsContent>
 
-          {/* Subscription Tab */}
-          <TabsContent value="subscription" className="animate-fade-in">
-            <SubscriptionTab subscription={subscription} />
-          </TabsContent>
-        </Tabs>
-      </main>
-    </div>
+            {/* Subscription Tab */}
+            <TabsContent value="subscription" className="animate-fade-in">
+              <SubscriptionTab subscription={subscription} />
+            </TabsContent>
+          </Tabs>
+        </main>
+      </div>
+    </AppLayout>
   );
 };
 

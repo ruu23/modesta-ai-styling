@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, HelpCircle } from 'lucide-react';
+import { ArrowLeft, HelpCircle, Layers, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useCloset } from '@/hooks/useCloset';
@@ -10,6 +10,9 @@ import { AISuggestionsPanel } from '@/components/outfit-builder/AISuggestionsPan
 import { OutfitToolbar } from '@/components/outfit-builder/OutfitToolbar';
 import { ClosetItem } from '@/types/closet';
 import { ThemeToggle } from '@/components/theme';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Dialog,
   DialogContent,
@@ -20,6 +23,7 @@ import {
 export default function OutfitBuilder() {
   const { toast } = useToast();
   const { allItems } = useCloset();
+  const isMobile = useIsMobile();
 
   // Canvas state
   const [canvasItems, setCanvasItems] = useState<CanvasItem[]>([]);
@@ -38,6 +42,9 @@ export default function OutfitBuilder() {
   // Tutorial
   const [showTutorial, setShowTutorial] = useState(false);
   const [hasSeenTutorial, setHasSeenTutorial] = useState(false);
+
+  // Mobile panels
+  const [activePanel, setActivePanel] = useState<'closet' | 'canvas' | 'ai'>('canvas');
 
   // Show tutorial on first visit
   useEffect(() => {
@@ -66,7 +73,6 @@ export default function OutfitBuilder() {
   const handleSetCanvasItems: React.Dispatch<React.SetStateAction<CanvasItem[]>> = useCallback((action) => {
     setCanvasItems(prev => {
       const newItems = typeof action === 'function' ? action(prev) : action;
-      // Don't update history on every drag move, only on significant changes
       if (newItems.length !== prev.length) {
         setHistory(h => [...h.slice(0, historyIndex + 1), newItems]);
         setHistoryIndex(i => i + 1);
@@ -136,9 +142,7 @@ export default function OutfitBuilder() {
     toast({ title: 'Avatar', description: 'Avatar preview coming soon!' });
   };
 
-  const handleDragStart = (item: ClosetItem) => {
-    // Optional: add visual feedback
-  };
+  const handleDragStart = (item: ClosetItem) => {};
 
   const handleAddItem = (item: ClosetItem) => {
     const newCanvasItem: CanvasItem = {
@@ -151,6 +155,7 @@ export default function OutfitBuilder() {
       zIndex: canvasItems.length,
     };
     handleSetCanvasItems(prev => [...prev, newCanvasItem]);
+    if (isMobile) setActivePanel('canvas');
     toast({ title: `Added ${item.name}` });
   };
 
@@ -179,6 +184,121 @@ export default function OutfitBuilder() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [selectedItemId, historyIndex]);
 
+  // Mobile Layout
+  if (isMobile) {
+    return (
+      <div className="h-[100dvh] flex flex-col bg-background">
+        {/* Header */}
+        <header className="h-14 border-b border-border bg-card flex items-center justify-between px-3 flex-shrink-0">
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="icon" asChild className="min-w-[44px] min-h-[44px]">
+              <Link to="/closet">
+                <ArrowLeft className="w-5 h-5" />
+              </Link>
+            </Button>
+            <h1 className="text-base font-semibold text-foreground">Outfit Builder</h1>
+          </div>
+
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setShowTutorial(true)}
+              className="min-w-[44px] min-h-[44px]"
+            >
+              <HelpCircle className="w-5 h-5" />
+            </Button>
+            <ThemeToggle />
+          </div>
+        </header>
+
+        {/* Mobile Tab Navigation */}
+        <Tabs value={activePanel} onValueChange={(v) => setActivePanel(v as any)} className="flex-1 flex flex-col">
+          <TabsList className="w-full h-12 rounded-none bg-muted/50 border-b border-border">
+            <TabsTrigger value="closet" className="flex-1 min-h-[44px]">
+              <Layers className="w-4 h-4 mr-2" />
+              Closet
+            </TabsTrigger>
+            <TabsTrigger value="canvas" className="flex-1 min-h-[44px] relative">
+              Canvas
+              {canvasItems.length > 0 && (
+                <span className="absolute -top-1 -right-1 w-5 h-5 bg-primary text-primary-foreground text-xs rounded-full flex items-center justify-center">
+                  {canvasItems.length}
+                </span>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="ai" className="flex-1 min-h-[44px]">
+              <Sparkles className="w-4 h-4 mr-2" />
+              AI
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="closet" className="flex-1 m-0 overflow-hidden">
+            <ClosetPanel items={allItems} onDragStart={handleDragStart} onAddItem={handleAddItem} />
+          </TabsContent>
+
+          <TabsContent value="canvas" className="flex-1 m-0">
+            <OutfitCanvas
+              canvasItems={canvasItems}
+              setCanvasItems={handleSetCanvasItems}
+              selectedItemId={selectedItemId}
+              setSelectedItemId={setSelectedItemId}
+              background={background}
+              setBackground={setBackground}
+            />
+          </TabsContent>
+
+          <TabsContent value="ai" className="flex-1 m-0 overflow-hidden">
+            <AISuggestionsPanel
+              canvasItems={canvasItems}
+              allItems={allItems}
+              outfitName={outfitName}
+              setOutfitName={setOutfitName}
+              selectedOccasions={selectedOccasions}
+              setSelectedOccasions={setSelectedOccasions}
+              selectedSeasons={selectedSeasons}
+              setSelectedSeasons={setSelectedSeasons}
+              onSave={handleSave}
+              onAddItem={handleAddItem}
+            />
+          </TabsContent>
+        </Tabs>
+
+        {/* Bottom Toolbar */}
+        <OutfitToolbar
+          canUndo={historyIndex > 0}
+          canRedo={historyIndex < history.length - 1}
+          onUndo={handleUndo}
+          onRedo={handleRedo}
+          onClear={handleClear}
+          onSaveDraft={handleSaveDraft}
+          onShare={handleShare}
+          onTryAvatar={handleTryAvatar}
+          itemCount={canvasItems.length}
+        />
+
+        {/* Tutorial Dialog */}
+        <Dialog open={showTutorial} onOpenChange={setShowTutorial}>
+          <DialogContent className="max-w-[90vw] max-h-[80vh] overflow-auto">
+            <DialogHeader>
+              <DialogTitle className="text-lg">Welcome to Outfit Builder!</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-3 py-3">
+              <TutorialStep number={1} title="Browse your closet" desc="Tap items to add them to your outfit" />
+              <TutorialStep number={2} title="Arrange on canvas" desc="Drag items to position them" />
+              <TutorialStep number={3} title="Get AI suggestions" desc="Tap AI tab for styling tips" />
+              <TutorialStep number={4} title="Save your look" desc="Name and save your outfit" />
+            </div>
+            <Button onClick={closeTutorial} className="w-full gradient-rose text-primary-foreground border-0 min-h-[48px]">
+              Got it!
+            </Button>
+          </DialogContent>
+        </Dialog>
+      </div>
+    );
+  }
+
+  // Desktop Layout
   return (
     <div className="h-screen flex flex-col bg-background">
       {/* Header */}
@@ -260,34 +380,10 @@ export default function OutfitBuilder() {
             <DialogTitle className="text-xl">Welcome to Outfit Builder! ✨</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
-            <div className="flex items-start gap-3">
-              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold">1</div>
-              <div>
-                <h4 className="font-medium text-foreground">Drag items from your closet</h4>
-                <p className="text-sm text-muted-foreground">Browse categories on the left and drag items onto the canvas</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold">2</div>
-              <div>
-                <h4 className="font-medium text-foreground">Position and resize</h4>
-                <p className="text-sm text-muted-foreground">Click items to select, drag to move, use corners to resize</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold">3</div>
-              <div>
-                <h4 className="font-medium text-foreground">Get AI suggestions</h4>
-                <p className="text-sm text-muted-foreground">Click "Get AI Help" for styling tips and compatibility scores</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold">4</div>
-              <div>
-                <h4 className="font-medium text-foreground">Save your creation</h4>
-                <p className="text-sm text-muted-foreground">Name your outfit, add tags, and save it to your collection</p>
-              </div>
-            </div>
+            <TutorialStep number={1} title="Drag items from your closet" desc="Browse categories on the left and drag items onto the canvas" />
+            <TutorialStep number={2} title="Position and resize" desc="Click items to select, drag to move, use corners to resize" />
+            <TutorialStep number={3} title="Get AI suggestions" desc='Click "Get AI Help" for styling tips and compatibility scores' />
+            <TutorialStep number={4} title="Save your creation" desc="Name your outfit, add tags, and save it to your collection" />
             <div className="pt-2 text-xs text-muted-foreground">
               <strong>Keyboard shortcuts:</strong> Ctrl+Z (Undo), Ctrl+Y (Redo), Ctrl+S (Save), Delete (Remove item)
             </div>
@@ -297,6 +393,20 @@ export default function OutfitBuilder() {
           </Button>
         </DialogContent>
       </Dialog>
+    </div>
+  );
+}
+
+function TutorialStep({ number, title, desc }: { number: number; title: string; desc: string }) {
+  return (
+    <div className="flex items-start gap-3">
+      <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold text-sm flex-shrink-0">
+        {number}
+      </div>
+      <div>
+        <h4 className="font-medium text-foreground text-sm">{title}</h4>
+        <p className="text-xs text-muted-foreground">{desc}</p>
+      </div>
     </div>
   );
 }

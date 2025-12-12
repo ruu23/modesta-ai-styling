@@ -8,9 +8,10 @@ import { ClosetItem, Category, CATEGORIES, COLORS } from '@/types/closet';
 interface ClosetPanelProps {
   items: ClosetItem[];
   onDragStart: (item: ClosetItem) => void;
+  onAddItem?: (item: ClosetItem) => void;
 }
 
-export function ClosetPanel({ items, onDragStart }: ClosetPanelProps) {
+export function ClosetPanel({ items, onDragStart, onAddItem }: ClosetPanelProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedColors, setSelectedColors] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<Category>('hijabs');
@@ -99,7 +100,8 @@ export function ClosetPanel({ items, onDragStart }: ClosetPanelProps) {
                       e.dataTransfer.setData('application/json', JSON.stringify(item));
                       onDragStart(item);
                     }}
-                    className="aspect-square rounded-lg overflow-hidden bg-muted cursor-grab active:cursor-grabbing group relative hover:ring-2 hover:ring-primary transition-all"
+                    onClick={() => onAddItem?.(item)}
+                    className="aspect-square rounded-lg overflow-hidden bg-muted cursor-grab active:cursor-grabbing group relative hover:ring-2 hover:ring-primary transition-all min-h-[60px]"
                   >
                     <img
                       src={item.images[0]}

@@ -126,92 +126,142 @@ export default function Closet() {
           <ThemeToggle />
         </div>
         
-        <div className="container max-w-7xl mx-auto px-3 md:px-4 py-4 md:py-8">
-          {/* Header */}
-          <ClosetHeader
-            stats={stats}
-            viewMode={viewMode}
-            setViewMode={setViewMode}
-            sortBy={sortBy}
-            setSortBy={setSortBy}
-            activeFilterCount={activeFilterCount}
-            onFilterClick={() => setIsFilterOpen(true)}
-            onAddClick={() => setIsAddOpen(true)}
-          />
+        {/* Collection Header - Zara Style */}
+        <header className="pt-16 md:pt-24 pb-8 md:pb-12 text-center">
+          <div className="w-16 h-px bg-gold mx-auto mb-8" />
+          <h1 className="font-serif text-3xl md:text-5xl tracking-[0.2em] uppercase text-foreground">
+            Collection
+          </h1>
+          <p className="mt-4 text-xs md:text-sm tracking-[0.3em] uppercase text-muted-foreground">
+            {stats.totalItems} Pieces
+          </p>
+          <div className="w-16 h-px bg-gold mx-auto mt-8" />
+        </header>
 
-          {/* Active Filters */}
-          {activeFilterCount > 0 && (
-            <div className="mt-3 md:mt-4 flex items-center gap-2 text-sm text-muted-foreground">
-              <span>Showing {items.length} items</span>
-            </div>
-          )}
-
-          {/* Content */}
-          <div className="mt-4 md:mt-8">
-            {isLoading ? (
-              <ClosetSkeleton />
-            ) : items.length === 0 ? (
-              <EmptyCloset
-                onAddClick={() => setIsAddOpen(true)}
-                hasFilters={activeFilterCount > 0}
-                onClearFilters={clearFilters}
-              />
-            ) : viewMode === 'grid' ? (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
-                {items.map((item, index) => (
-                  <div
-                    key={item.id}
-                    className="animate-fade-in"
-                    style={{ animationDelay: `${Math.min(index * 30, 300)}ms` }}
-                  >
-                    <ClosetItemCard
-                      item={item}
-                      isSelected={selectedItems.includes(item.id)}
-                      onSelect={() => toggleSelectItem(item.id)}
-                      onView={() => handleViewItem(item)}
-                      onEdit={handleEditItem}
-                      onDelete={() => handleDeleteItem(item.id)}
-                      onCreateOutfit={handleCreateOutfit}
-                      selectionMode={selectedItems.length > 0}
-                    />
-                  </div>
-                ))}
+        {/* Minimal Navigation */}
+        <nav className="border-y border-border/30 py-4 md:py-6">
+          <div className="container max-w-6xl mx-auto px-4 md:px-8">
+            <div className="flex items-center justify-between">
+              {/* Filter Controls */}
+              <div className="flex items-center gap-6 md:gap-12">
+                <button
+                  onClick={() => setIsFilterOpen(true)}
+                  className="text-xs tracking-[0.2em] uppercase text-muted-foreground hover:text-gold transition-colors"
+                >
+                  Filter{activeFilterCount > 0 && ` (${activeFilterCount})`}
+                </button>
+                <button
+                  onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
+                  className="text-xs tracking-[0.2em] uppercase text-muted-foreground hover:text-gold transition-colors"
+                >
+                  {viewMode === 'grid' ? 'List View' : 'Grid View'}
+                </button>
               </div>
-            ) : (
-              <div className="space-y-3">
-                {items.map((item, index) => (
-                  <div
-                    key={item.id}
-                    className="animate-fade-in flex items-center gap-3 md:gap-4 p-3 md:p-4 glass rounded-xl shadow-soft hover:shadow-glow transition-all cursor-pointer min-h-[72px]"
-                    style={{ animationDelay: `${Math.min(index * 30, 300)}ms` }}
-                    onClick={() => handleViewItem(item)}
-                  >
+
+              {/* Add & Sort */}
+              <div className="flex items-center gap-6 md:gap-12">
+                <button
+                  onClick={() => setIsAddOpen(true)}
+                  className="text-xs tracking-[0.2em] uppercase text-muted-foreground hover:text-gold transition-colors"
+                >
+                  + Add Item
+                </button>
+              </div>
+            </div>
+          </div>
+        </nav>
+
+        {/* Collection Grid */}
+        <main className="container max-w-6xl mx-auto px-4 md:px-8 py-12 md:py-16">
+          {isLoading ? (
+            <ClosetSkeleton />
+          ) : items.length === 0 ? (
+            <EmptyCloset
+              onAddClick={() => setIsAddOpen(true)}
+              hasFilters={activeFilterCount > 0}
+              onClearFilters={clearFilters}
+            />
+          ) : viewMode === 'grid' ? (
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-8">
+              {items.map((item) => (
+                <article
+                  key={item.id}
+                  className="group cursor-pointer"
+                  onClick={() => selectedItems.length > 0 ? toggleSelectItem(item.id) : handleViewItem(item)}
+                >
+                  {/* Image Container */}
+                  <div className="relative aspect-[3/4] overflow-hidden bg-muted/20">
+                    <OptimizedImage
+                      src={item.images[0]}
+                      alt={`${item.name} by ${item.brand}`}
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    />
+                    
+                    {/* Selection Indicator */}
+                    {selectedItems.includes(item.id) && (
+                      <div className="absolute top-4 left-4 w-6 h-6 bg-gold flex items-center justify-center">
+                        <span className="text-background text-xs">✓</span>
+                      </div>
+                    )}
+
+                    {/* Hover Overlay - Minimal */}
+                    <div className="absolute inset-0 bg-background/0 group-hover:bg-background/10 transition-colors duration-500" />
+                  </div>
+
+                  {/* Item Info - Clean Typography */}
+                  <div className="mt-4 md:mt-6 text-center">
+                    <h3 className="font-serif text-sm md:text-base tracking-wide text-foreground group-hover:text-gold transition-colors duration-300">
+                      {item.name}
+                    </h3>
+                    <p className="mt-1 text-[10px] md:text-xs tracking-[0.2em] uppercase text-muted-foreground">
+                      {item.brand}
+                    </p>
+                    {/* Gold Underline on Hover */}
+                    <div className="mt-3 w-0 h-px bg-gold mx-auto transition-all duration-500 group-hover:w-12" />
+                  </div>
+                </article>
+              ))}
+            </div>
+          ) : (
+            /* List View */
+            <div className="divide-y divide-border/30">
+              {items.map((item) => (
+                <article
+                  key={item.id}
+                  className="group py-6 md:py-8 flex items-center gap-6 md:gap-10 cursor-pointer"
+                  onClick={() => handleViewItem(item)}
+                >
+                  <div className="w-20 h-28 md:w-24 md:h-32 overflow-hidden bg-muted/20 flex-shrink-0">
                     <OptimizedImage
                       src={item.images[0]}
                       alt={item.name}
-                      className="w-16 h-16 md:w-20 md:h-20 rounded-lg flex-shrink-0"
+                      className="w-full h-full object-cover"
                     />
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-medium text-foreground truncate text-sm md:text-base">{item.name}</h3>
-                      <p className="text-xs md:text-sm text-muted-foreground">{item.brand}</p>
-                      <p className="text-xs text-muted-foreground mt-0.5 md:mt-1">Worn {item.wornCount}x</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-medium text-foreground text-sm md:text-base">${item.price}</p>
-                    </div>
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-serif text-base md:text-lg tracking-wide text-foreground group-hover:text-gold transition-colors">
+                      {item.name}
+                    </h3>
+                    <p className="mt-1 text-[10px] md:text-xs tracking-[0.2em] uppercase text-muted-foreground">
+                      {item.brand}
+                    </p>
+                    <div className="mt-3 w-0 h-px bg-gold transition-all duration-500 group-hover:w-16" />
+                  </div>
+                  <div className="text-right">
+                    <p className="font-serif text-sm md:text-base text-foreground">${item.price}</p>
+                  </div>
+                </article>
+              ))}
+            </div>
+          )}
+        </main>
 
         {/* Mobile Filter - Bottom Sheet */}
         {isMobile ? (
           <Sheet open={isFilterOpen} onOpenChange={setIsFilterOpen}>
-            <SheetContent side="bottom" className="h-[85vh] rounded-t-2xl p-0">
+            <SheetContent side="bottom" className="h-[85vh] rounded-t-2xl p-0 bg-background border-t border-gold/20">
               <LazyLoad minHeight="400px">
-                <Suspense fallback={<div className="p-4">Loading filters...</div>}>
+                <Suspense fallback={<div className="p-8 text-center text-xs tracking-[0.2em] uppercase">Loading...</div>}>
                   <LazyFilterSidebar
                     isOpen={true}
                     onClose={() => setIsFilterOpen(false)}
@@ -227,7 +277,7 @@ export default function Closet() {
           </Sheet>
         ) : (
           isFilterOpen && (
-            <Suspense fallback={<div className="p-4">Loading filters...</div>}>
+            <Suspense fallback={<div className="p-8 text-center text-xs tracking-[0.2em] uppercase">Loading...</div>}>
               <LazyFilterSidebar
                 isOpen={isFilterOpen}
                 onClose={() => setIsFilterOpen(false)}
@@ -241,7 +291,7 @@ export default function Closet() {
           )
         )}
 
-        {/* Item Detail Modal - Lazy loaded */}
+        {/* Item Detail Modal */}
         {isDetailOpen && (
           <Suspense fallback={null}>
             <LazyItemDetailModal
@@ -262,7 +312,7 @@ export default function Closet() {
           </Suspense>
         )}
 
-        {/* Add Item Modal - Lazy loaded */}
+        {/* Add Item Modal */}
         {isAddOpen && (
           <Suspense fallback={null}>
             <LazyAddItemModal

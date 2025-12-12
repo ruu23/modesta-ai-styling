@@ -8,6 +8,7 @@ import { PreferencesTab } from '@/components/settings/PreferencesTab';
 import { MeasurementsTab } from '@/components/settings/MeasurementsTab';
 import { AccountTab } from '@/components/settings/AccountTab';
 import { SubscriptionTab } from '@/components/settings/SubscriptionTab';
+import { ThemeToggle } from '@/components/theme';
 
 const Settings = () => {
   const {
@@ -39,16 +40,19 @@ const Settings = () => {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="sticky top-0 z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
-        <div className="container mx-auto px-4 h-16 flex items-center gap-4">
-          <Link to="/">
-            <Button variant="ghost" size="icon">
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-          </Link>
-          <div>
-            <h1 className="text-xl font-semibold">Settings</h1>
-            <p className="text-sm text-muted-foreground">Manage your account and preferences</p>
+        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Link to="/">
+              <Button variant="ghost" size="icon">
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+            </Link>
+            <div>
+              <h1 className="text-xl font-semibold">Settings</h1>
+              <p className="text-sm text-muted-foreground">Manage your account and preferences</p>
+            </div>
           </div>
+          <ThemeToggle />
         </div>
       </header>
 

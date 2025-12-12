@@ -8,7 +8,8 @@ import { ChatMessages } from '@/components/chat/ChatMessages';
 import { ChatInput } from '@/components/chat/ChatInput';
 import { ChatEmptyState } from '@/components/chat/ChatEmptyState';
 import { useState } from 'react';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent } from '@/components/ui/sheet';
+import { ThemeToggle } from '@/components/theme';
 
 export default function Chat() {
   const {
@@ -83,12 +84,13 @@ export default function Chat() {
 
         {/* Desktop Header */}
         <div className="hidden md:block">
-          <div className="h-14 border-b border-border bg-card flex items-center px-4">
+          <div className="h-14 border-b border-border bg-card flex items-center justify-between px-4">
             <Button variant="ghost" size="icon" asChild>
               <Link to="/">
                 <ArrowLeft className="w-5 h-5" />
               </Link>
             </Button>
+            <ThemeToggle />
           </div>
           <ChatHeader />
         </div>

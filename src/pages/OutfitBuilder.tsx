@@ -9,6 +9,7 @@ import { OutfitCanvas, CanvasItem } from '@/components/outfit-builder/OutfitCanv
 import { AISuggestionsPanel } from '@/components/outfit-builder/AISuggestionsPanel';
 import { OutfitToolbar } from '@/components/outfit-builder/OutfitToolbar';
 import { ClosetItem } from '@/types/closet';
+import { ThemeToggle } from '@/components/theme';
 import {
   Dialog,
   DialogContent,
@@ -191,13 +192,16 @@ export default function OutfitBuilder() {
           <h1 className="text-lg font-semibold text-foreground">Outfit Builder</h1>
         </div>
 
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setShowTutorial(true)}
-        >
-          <HelpCircle className="w-5 h-5" />
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setShowTutorial(true)}
+          >
+            <HelpCircle className="w-5 h-5" />
+          </Button>
+          <ThemeToggle />
+        </div>
       </header>
 
       {/* Main Content */}

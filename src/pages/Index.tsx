@@ -126,14 +126,66 @@ export default memo(function Index() {
           <div className="relative border border-border/40 bg-muted/30 overflow-hidden">
             <CornerAccent position="top-left" />
             <CornerAccent position="bottom-right" />
-            <div className="aspect-[16/10] md:aspect-[21/9] flex items-center justify-center relative">
-              <EditorialImage aspect="auto" className="absolute inset-0 w-full h-full" overlay>
-                <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/20 to-transparent" />
-              </EditorialImage>
-              <div className="relative z-10 text-center px-6">
-                <p className="text-[9px] uppercase tracking-[0.3em] text-gold/70 mb-3">Curated for You</p>
-                <h2 className="font-serif text-2xl md:text-4xl tracking-[0.02em] mb-2">Today's Suggested Look</h2>
-                <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">AI-powered styling recommendation</p>
+            <div className="aspect-[16/10] md:aspect-[21/9] grid grid-cols-1 md:grid-cols-2 relative">
+              {/* Left Panel - Abstract Editorial Graphic */}
+              <div className="hidden md:block relative bg-gradient-to-br from-muted via-muted/80 to-background overflow-hidden">
+                {/* Soft gradient base */}
+                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_30%_20%,hsl(var(--muted-foreground)/0.08)_0%,transparent_50%)]" />
+                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_70%_80%,hsl(var(--muted-foreground)/0.05)_0%,transparent_40%)]" />
+                
+                {/* Abstract geometric shapes */}
+                <svg className="absolute inset-0 w-full h-full" preserveAspectRatio="xMidYMid slice">
+                  {/* Large arch */}
+                  <path 
+                    d="M 10% 100% Q 10% 40%, 50% 40% Q 90% 40%, 90% 100%" 
+                    fill="none" 
+                    stroke="hsl(var(--muted-foreground))" 
+                    strokeWidth="0.3" 
+                    opacity="0.15"
+                  />
+                  {/* Smaller inner arch */}
+                  <path 
+                    d="M 25% 100% Q 25% 55%, 50% 55% Q 75% 55%, 75% 100%" 
+                    fill="none" 
+                    stroke="hsl(var(--muted-foreground))" 
+                    strokeWidth="0.3" 
+                    opacity="0.1"
+                  />
+                  {/* Vertical line left */}
+                  <line x1="20%" y1="15%" x2="20%" y2="85%" stroke="hsl(var(--muted-foreground))" strokeWidth="0.3" opacity="0.12" />
+                  {/* Vertical line right */}
+                  <line x1="80%" y1="15%" x2="80%" y2="85%" stroke="hsl(var(--muted-foreground))" strokeWidth="0.3" opacity="0.12" />
+                  {/* Horizontal line */}
+                  <line x1="10%" y1="50%" x2="90%" y2="50%" stroke="hsl(var(--muted-foreground))" strokeWidth="0.2" opacity="0.08" />
+                  {/* Circle top */}
+                  <circle cx="50%" cy="25%" r="8%" fill="none" stroke="hsl(var(--muted-foreground))" strokeWidth="0.3" opacity="0.1" />
+                  {/* Small circle */}
+                  <circle cx="35%" cy="70%" r="3%" fill="none" stroke="hsl(var(--muted-foreground))" strokeWidth="0.3" opacity="0.08" />
+                  {/* Diagonal lines */}
+                  <line x1="30%" y1="20%" x2="45%" y2="35%" stroke="hsl(var(--muted-foreground))" strokeWidth="0.2" opacity="0.1" />
+                  <line x1="55%" y1="65%" x2="70%" y2="80%" stroke="hsl(var(--muted-foreground))" strokeWidth="0.2" opacity="0.1" />
+                  {/* Gold accent - single elegant line */}
+                  <line x1="48%" y1="48%" x2="52%" y2="52%" stroke="hsl(var(--gold))" strokeWidth="0.8" opacity="0.6" />
+                  <circle cx="50%" cy="50%" r="1" fill="hsl(var(--gold))" opacity="0.5" />
+                </svg>
+                
+                {/* Subtle texture overlay */}
+                <div className="absolute inset-0 opacity-[0.03]" style={{ 
+                  backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 256 256\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noise\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noise)\'/%3E%3C/svg%3E")',
+                  backgroundSize: '150px 150px'
+                }} />
+                
+                {/* Corner shadow for depth */}
+                <div className="absolute bottom-0 right-0 w-1/2 h-1/2 bg-gradient-to-tl from-background/20 to-transparent" />
+              </div>
+              
+              {/* Right Panel - Text Content */}
+              <div className="flex items-center justify-center relative bg-gradient-to-l from-background via-background to-transparent">
+                <div className="relative z-10 text-center px-6 md:px-12">
+                  <p className="text-[9px] uppercase tracking-[0.3em] text-gold/70 mb-3">Curated for You</p>
+                  <h2 className="font-serif text-2xl md:text-4xl tracking-[0.02em] mb-2">Today's Suggested Look</h2>
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">AI-powered styling recommendation</p>
+                </div>
               </div>
             </div>
             <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-gold/30 to-transparent" />

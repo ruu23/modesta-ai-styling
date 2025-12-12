@@ -3,24 +3,73 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- TODO: Set the document title to the name of your application -->
-    <title>Lovable App</title>
-    <meta name="description" content="Lovable Generated Project" />
-    <meta name="author" content="Lovable" />
+    
+    <!-- Preconnect to critical origins -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    
+    <!-- DNS prefetch for performance -->
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+    
+    <title>Modesta - Your AI-Powered Modest Fashion Closet</title>
+    <meta name="description" content="Organize your modest wardrobe, get AI styling suggestions, plan hijab-matching outfits, and discover your unique style with Modesta." />
+    <meta name="author" content="Modesta" />
+    <meta name="theme-color" content="#0f0f0f" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#faf5f3" media="(prefers-color-scheme: light)" />
 
-    <!-- TODO: Update og:title to match your application name -->
-    <meta property="og:title" content="Lovable App" />
-    <meta property="og:description" content="Lovable Generated Project" />
+    <meta property="og:title" content="Modesta - Your AI-Powered Modest Fashion Closet" />
+    <meta property="og:description" content="Organize your modest wardrobe, get AI styling suggestions, and discover your unique style." />
     <meta property="og:type" content="website" />
     <meta property="og:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
 
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:site" content="@Lovable" />
+    <meta name="twitter:site" content="@Modesta" />
     <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+    
+    <!-- Critical CSS inlined for faster First Paint -->
+    <style>
+      /* Critical above-the-fold styles */
+      :root {
+        --background: 25 33% 97%;
+        --foreground: 25 10% 15%;
+      }
+      .dark {
+        --background: 0 0% 6%;
+        --foreground: 0 0% 100%;
+      }
+      body {
+        margin: 0;
+        background-color: hsl(var(--background));
+        color: hsl(var(--foreground));
+        font-family: system-ui, -apple-system, sans-serif;
+      }
+      #root {
+        min-height: 100vh;
+      }
+      /* Loading state */
+      .app-loading {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+      }
+      .app-loading::after {
+        content: "";
+        width: 40px;
+        height: 40px;
+        border: 3px solid hsl(var(--foreground) / 0.1);
+        border-top-color: hsl(var(--foreground) / 0.5);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+    </style>
   </head>
 
   <body>
-    <div id="root"></div>
+    <div id="root" class="app-loading"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

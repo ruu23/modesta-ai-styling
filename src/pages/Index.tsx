@@ -5,19 +5,63 @@ import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/theme';
 import { AppLayout } from '@/components/layout';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { PageTransition, FadeIn, StaggerChildren, StaggerItem, ParticleBackground, GradientText, IconBounce } from '@/components/animations';
+import { PageTransition, FadeIn, StaggerChildren, StaggerItem, GradientText, IconBounce } from '@/components/animations';
+import { memo, useMemo, lazy, Suspense } from 'react';
 
+// Lazy load particle background as it's not critical for initial render
+const LazyParticleBackground = lazy(() => 
+  import('@/components/animations/ParticleBackground').then(m => ({ default: m.ParticleBackground }))
+);
+
+// Memoize nav items to prevent recreation
 const navItems = [
   { to: '/closet', icon: Sparkles, label: 'Explore Closet', primary: true },
-  { to: '/outfit-builder', icon: Palette, label: 'Build Outfit' },
-  { to: '/chat', icon: MessageSquare, label: 'AI Stylist' },
-  { to: '/calendar', icon: CalendarDays, label: 'Calendar' },
-  { to: '/settings', icon: Settings, label: 'Settings' },
+  { to: '/outfit-builder', icon: Palette, label: 'Build Outfit', primary: false },
+  { to: '/chat', icon: MessageSquare, label: 'AI Stylist', primary: false },
+  { to: '/calendar', icon: CalendarDays, label: 'Calendar', primary: false },
+  { to: '/settings', icon: Settings, label: 'Settings', primary: false },
 ];
 
-export default function Index() {
-  const isMobile = useIsMobile();
+// Memoized nav button component
+const NavButton = memo(function NavButton({ 
+  item, 
+  isMobile 
+}: { 
+  item: typeof navItems[number]; 
+  isMobile: boolean;
+}) {
+  return (
+    <StaggerItem>
+      <motion.div
+        whileHover={isMobile ? undefined : { scale: 1.02, y: -2 }}
+        whileTap={{ scale: 0.95 }}
+      >
+        <Button 
+          asChild 
+          size="lg" 
+          variant={item.primary ? 'default' : 'outline'}
+          className={`w-full sm:w-auto min-h-[48px] ${item.primary 
+            ? 'gradient-rose text-primary-foreground border-0 hover:opacity-90 shadow-soft' 
+            : 'hover:shadow-soft transition-all duration-300 bg-card'
+          }`}
+        >
+          <Link to={item.to}>
+            <IconBounce>
+              <item.icon className="w-5 h-5 mr-2" aria-hidden="true" />
+            </IconBounce>
+            {item.label}
+          </Link>
+        </Button>
+      </motion.div>
+    </StaggerItem>
+  );
+});
 
+export default memo(function Index() {
+  const isMobile = useIsMobile();
+  
+  // Memoize particle count
+  const particleCount = useMemo(() => isMobile ? 10 : 25, [isMobile]);
   return (
     <AppLayout showBottomNav={true}>
       <PageTransition className="min-h-screen bg-background flex items-center justify-center relative overflow-hidden">
@@ -31,8 +75,10 @@ export default function Index() {
           <ThemeToggle />
         </div>
 
-        {/* Particle Background - Reduced on mobile */}
-        <ParticleBackground count={isMobile ? 10 : 25} />
+        {/* Particle Background - Lazy loaded and reduced on mobile */}
+        <Suspense fallback={null}>
+          <LazyParticleBackground count={particleCount} />
+        </Suspense>
         
         {/* Radial Gradient Overlay */}
         <div className="absolute inset-0 gradient-radial pointer-events-none" />
@@ -73,54 +119,32 @@ export default function Index() {
             </div>
           </FadeIn>
 
-          {/* Navigation Buttons - Stacked on mobile */}
-          <StaggerChildren 
-            className="flex flex-col sm:flex-row sm:flex-wrap gap-3 justify-center px-4"
-            staggerDelay={isMobile ? 0.05 : 0.08}
-            initialDelay={0.3}
-          >
-            {navItems.map((item) => (
-              <StaggerItem key={item.to}>
-                <motion.div
-                  whileHover={isMobile ? undefined : { scale: 1.02, y: -2 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <Button 
-                    asChild 
-                    size="lg" 
-                    variant={item.primary ? 'default' : 'outline'}
-                    className={`w-full sm:w-auto min-h-[48px] ${item.primary 
-                      ? 'gradient-rose text-primary-foreground border-0 hover:opacity-90 shadow-soft' 
-                      : 'hover:shadow-soft transition-all duration-300 bg-card'
-                    }`}
-                  >
-                    <Link to={item.to}>
-                      <IconBounce>
-                        <item.icon className="w-5 h-5 mr-2" />
-                      </IconBounce>
-                      {item.label}
-                    </Link>
-                  </Button>
-                </motion.div>
-              </StaggerItem>
-            ))}
-          </StaggerChildren>
+        {/* Navigation Buttons - Stacked on mobile */}
+        <StaggerChildren 
+          className="flex flex-col sm:flex-row sm:flex-wrap gap-3 justify-center px-4"
+          staggerDelay={isMobile ? 0.05 : 0.08}
+          initialDelay={0.3}
+        >
+          {navItems.map((item) => (
+            <NavButton key={item.to} item={item} isMobile={isMobile} />
+          ))}
+        </StaggerChildren>
 
-          {/* Decorative Elements - Smaller on mobile */}
-          <motion.div
-            className="absolute -bottom-10 md:-bottom-20 left-1/2 -translate-x-1/2 w-64 h-64 md:w-96 md:h-96 rounded-full bg-primary/5 blur-3xl"
-            animate={isMobile ? undefined : {
-              scale: [1, 1.1, 1],
-              opacity: [0.3, 0.5, 0.3],
-            }}
-            transition={{
-              duration: 4,
-              repeat: Infinity,
-              ease: 'easeInOut',
-            }}
-          />
-        </main>
-      </PageTransition>
-    </AppLayout>
+        {/* Decorative Elements - Smaller on mobile */}
+        <motion.div
+          className="absolute -bottom-10 md:-bottom-20 left-1/2 -translate-x-1/2 w-64 h-64 md:w-96 md:h-96 rounded-full bg-primary/5 blur-3xl"
+          animate={isMobile ? undefined : {
+            scale: [1, 1.1, 1],
+            opacity: [0.3, 0.5, 0.3],
+          }}
+          transition={{
+            duration: 4,
+            repeat: Infinity,
+            ease: 'easeInOut',
+          }}
+        />
+      </main>
+    </PageTransition>
+  </AppLayout>
   );
-}
+});

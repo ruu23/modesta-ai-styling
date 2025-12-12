@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { Eye, Wand2, Pencil, Trash2, Check } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { ClosetItem, CATEGORIES, COLORS } from '@/types/closet';
+import { OptimizedImage } from '@/components/ui/OptimizedImage';
 
 interface ClosetItemCardProps {
   item: ClosetItem;
@@ -14,7 +15,7 @@ interface ClosetItemCardProps {
   selectionMode: boolean;
 }
 
-export function ClosetItemCard({
+export const ClosetItemCard = memo(function ClosetItemCard({
   item,
   isSelected,
   onSelect,
@@ -50,10 +51,10 @@ export function ClosetItemCard({
     >
       {/* Image */}
       <div className="relative aspect-[3/4] overflow-hidden">
-        <img
+        <OptimizedImage
           src={item.images[0]}
           alt={`${item.name} - ${categoryLabel} by ${item.brand}`}
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+          className="w-full h-full transition-transform duration-500 group-hover:scale-105"
         />
 
         {/* Selection Checkbox */}
@@ -150,4 +151,4 @@ export function ClosetItemCard({
       </div>
     </article>
   );
-}
+});

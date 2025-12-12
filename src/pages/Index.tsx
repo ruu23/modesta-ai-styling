@@ -1,57 +1,107 @@
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { Shirt, Sparkles, Palette, MessageSquare, CalendarDays, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { PageTransition, FadeIn, StaggerChildren, StaggerItem, ParticleBackground, GradientText, IconBounce } from '@/components/animations';
+
+const navItems = [
+  { to: '/closet', icon: Sparkles, label: 'Explore Closet', primary: true },
+  { to: '/outfit-builder', icon: Palette, label: 'Build Outfit' },
+  { to: '/chat', icon: MessageSquare, label: 'AI Stylist' },
+  { to: '/calendar', icon: CalendarDays, label: 'Calendar' },
+  { to: '/settings', icon: Settings, label: 'Settings' },
+];
 
 export default function Index() {
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center">
-      <div className="text-center space-y-8 px-4">
-        <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl gradient-rose mb-4">
-          <Shirt className="w-10 h-10 text-primary-foreground" />
-        </div>
+    <PageTransition className="min-h-screen bg-background flex items-center justify-center relative overflow-hidden">
+      {/* Particle Background */}
+      <ParticleBackground count={25} />
+      
+      {/* Radial Gradient Overlay */}
+      <div className="absolute inset-0 gradient-radial pointer-events-none" />
+      
+      <div className="text-center space-y-8 px-4 relative z-10">
+        {/* Logo */}
+        <FadeIn delay={0.1}>
+          <motion.div 
+            className="inline-flex items-center justify-center w-20 h-20 rounded-2xl gradient-rose mb-4 shadow-glow"
+            whileHover={{ scale: 1.05, rotate: 5 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <motion.div
+              animate={{ y: [0, -3, 0] }}
+              transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+            >
+              <Shirt className="w-10 h-10 text-primary-foreground" />
+            </motion.div>
+          </motion.div>
+        </FadeIn>
         
-        <div className="space-y-3">
-          <h1 className="text-4xl md:text-5xl font-semibold text-foreground">
-            Your Digital Closet
-          </h1>
-          <p className="text-lg text-muted-foreground max-w-md mx-auto">
-            Organize your wardrobe, plan outfits, and discover your style
-          </p>
-        </div>
+        {/* Title */}
+        <FadeIn delay={0.2}>
+          <div className="space-y-3">
+            <h1 className="text-4xl md:text-5xl font-semibold">
+              <GradientText>Your Digital Closet</GradientText>
+            </h1>
+            <motion.p 
+              className="text-lg text-muted-foreground max-w-md mx-auto"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.4, duration: 0.6 }}
+            >
+              Organize your wardrobe, plan outfits, and discover your style
+            </motion.p>
+          </div>
+        </FadeIn>
 
-        <div className="flex flex-wrap gap-3 justify-center max-w-lg mx-auto">
-          <Button asChild size="lg" className="gradient-rose text-primary-foreground border-0 hover:opacity-90">
-            <Link to="/closet">
-              <Sparkles className="w-5 h-5 mr-2" />
-              Explore Closet
-            </Link>
-          </Button>
-          <Button asChild size="lg" variant="outline">
-            <Link to="/outfit-builder">
-              <Palette className="w-5 h-5 mr-2" />
-              Build Outfit
-            </Link>
-          </Button>
-          <Button asChild size="lg" variant="outline">
-            <Link to="/chat">
-              <MessageSquare className="w-5 h-5 mr-2" />
-              AI Stylist
-            </Link>
-          </Button>
-          <Button asChild size="lg" variant="outline">
-            <Link to="/calendar">
-              <CalendarDays className="w-5 h-5 mr-2" />
-              Calendar
-            </Link>
-          </Button>
-          <Button asChild size="lg" variant="outline">
-            <Link to="/settings">
-              <Settings className="w-5 h-5 mr-2" />
-              Settings
-            </Link>
-          </Button>
-        </div>
+        {/* Navigation Buttons */}
+        <StaggerChildren 
+          className="flex flex-wrap gap-3 justify-center max-w-lg mx-auto"
+          staggerDelay={0.08}
+          initialDelay={0.3}
+        >
+          {navItems.map((item) => (
+            <StaggerItem key={item.to}>
+              <motion.div
+                whileHover={{ scale: 1.02, y: -2 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Button 
+                  asChild 
+                  size="lg" 
+                  variant={item.primary ? 'default' : 'outline'}
+                  className={item.primary 
+                    ? 'gradient-rose text-primary-foreground border-0 hover:opacity-90 shadow-soft' 
+                    : 'hover:shadow-soft transition-shadow'
+                  }
+                >
+                  <Link to={item.to}>
+                    <IconBounce>
+                      <item.icon className="w-5 h-5 mr-2" />
+                    </IconBounce>
+                    {item.label}
+                  </Link>
+                </Button>
+              </motion.div>
+            </StaggerItem>
+          ))}
+        </StaggerChildren>
+
+        {/* Decorative Elements */}
+        <motion.div
+          className="absolute -bottom-20 left-1/2 -translate-x-1/2 w-96 h-96 rounded-full bg-primary/5 blur-3xl"
+          animate={{
+            scale: [1, 1.1, 1],
+            opacity: [0.3, 0.5, 0.3],
+          }}
+          transition={{
+            duration: 4,
+            repeat: Infinity,
+            ease: 'easeInOut',
+          }}
+        />
       </div>
-    </div>
+    </PageTransition>
   );
 }

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Wand2, Download, Share2 } from 'lucide-react';
+import { ArrowLeft, Wand2, Download, Share2, CalendarDays } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useCalendar } from '@/hooks/useCalendar';
@@ -44,7 +44,6 @@ export default function Calendar() {
   const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null);
   const [showEventsSidebar, setShowEventsSidebar] = useState(false);
 
-  // Default to week view on mobile
   const effectiveView = isMobile && view === 'month' ? 'week' : view;
 
   const handleAddEvent = (date?: Date) => {
@@ -61,10 +60,10 @@ export default function Calendar() {
   const handleSaveEvent = (eventData: Omit<CalendarEvent, 'id'>) => {
     if (editingEvent) {
       updateEvent(editingEvent.id, eventData);
-      toast({ title: 'Event updated!' });
+      toast({ title: 'Event updated' });
     } else {
       addEvent(eventData);
-      toast({ title: 'Event created!' });
+      toast({ title: 'Event created' });
     }
   };
 
@@ -94,40 +93,41 @@ export default function Calendar() {
     <AppLayout showBottomNav={true}>
       <div className="h-[100dvh] flex flex-col bg-background">
         {/* Top Bar */}
-        <div className="h-14 border-b border-border bg-card flex items-center justify-between px-3 md:px-4 flex-shrink-0">
-          <div className="flex items-center gap-2 md:gap-3">
-            <Button variant="ghost" size="icon" asChild className="min-w-[44px] min-h-[44px]">
-              <Link to="/">
-                <ArrowLeft className="w-5 h-5" />
-              </Link>
-            </Button>
-            <h1 className="font-semibold text-foreground text-sm md:text-base">Outfit Calendar</h1>
+        <header className="h-16 border-b border-border bg-background flex items-center justify-between px-6 md:px-8 flex-shrink-0">
+          <div className="flex items-center gap-4">
+            <Link to="/" className="text-muted-foreground hover:text-foreground transition-colors">
+              <ArrowLeft className="w-5 h-5" strokeWidth={1.5} />
+            </Link>
+            <div className="flex items-center gap-3">
+              <CalendarDays className="w-5 h-5 text-gold" strokeWidth={1} />
+              <h1 className="text-lg tracking-wide">Calendar</h1>
+            </div>
           </div>
 
-          <div className="flex items-center gap-1 md:gap-2">
+          <div className="flex items-center gap-2">
             <Button 
-              variant="outline" 
+              variant="gold" 
               size="sm" 
               onClick={handleSmartPlan}
-              className="hidden sm:flex min-h-[36px]"
+              className="hidden sm:flex"
             >
               <Wand2 className="w-4 h-4 mr-2" />
               Smart Plan
             </Button>
-            <Button variant="ghost" size="icon" className="min-w-[44px] min-h-[44px] hidden sm:flex">
-              <Download className="w-4 h-4" />
+            <Button variant="ghost" size="icon" className="hidden sm:flex">
+              <Download className="w-4 h-4" strokeWidth={1.5} />
             </Button>
-            <Button variant="ghost" size="icon" className="min-w-[44px] min-h-[44px] hidden sm:flex">
-              <Share2 className="w-4 h-4" />
+            <Button variant="ghost" size="icon" className="hidden sm:flex">
+              <Share2 className="w-4 h-4" strokeWidth={1.5} />
             </Button>
             <ThemeToggle />
           </div>
-        </div>
+        </header>
 
         {/* Main Content */}
         <div className="flex-1 flex overflow-hidden">
           {/* Left Sidebar - Events (Desktop only) */}
-          <div className="hidden lg:block">
+          <div className="hidden lg:block border-r border-border">
             <EventsSidebar
               events={upcomingEvents}
               onAddEvent={() => handleAddEvent()}
@@ -166,23 +166,25 @@ export default function Calendar() {
 
           {/* Right Panel - Day Details (Desktop) */}
           {!isMobile && selectedDate && selectedDateWeather && (
-            <DayDetailPanel
-              date={selectedDate}
-              events={selectedDateEvents}
-              weather={selectedDateWeather}
-              onClose={() => setSelectedDate(null)}
-              onEditEvent={handleEditEvent}
-              onDeleteEvent={handleDeleteEvent}
-              onAddEvent={() => handleAddEvent(selectedDate)}
-              onAssignOutfit={handleAssignOutfit}
-            />
+            <div className="border-l border-border">
+              <DayDetailPanel
+                date={selectedDate}
+                events={selectedDateEvents}
+                weather={selectedDateWeather}
+                onClose={() => setSelectedDate(null)}
+                onEditEvent={handleEditEvent}
+                onDeleteEvent={handleDeleteEvent}
+                onAddEvent={() => handleAddEvent(selectedDate)}
+                onAssignOutfit={handleAssignOutfit}
+              />
+            </div>
           )}
         </div>
 
         {/* Mobile Day Detail - Bottom Sheet */}
         {isMobile && (
           <Sheet open={!!selectedDate} onOpenChange={(open) => !open && setSelectedDate(null)}>
-            <SheetContent side="bottom" className="h-[70vh] rounded-t-2xl p-0">
+            <SheetContent side="bottom" className="h-[70vh] p-0">
               {selectedDate && selectedDateWeather && (
                 <DayDetailPanel
                   date={selectedDate}

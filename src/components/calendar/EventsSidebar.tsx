@@ -21,28 +21,28 @@ export function EventsSidebar({
   };
 
   return (
-    <div className="w-72 h-full flex flex-col bg-card border-r border-border">
+    <div className="w-72 h-full flex flex-col bg-background">
       {/* Header */}
-      <div className="p-4 border-b border-border">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="font-semibold text-foreground">Upcoming Events</h2>
+      <div className="p-6 border-b border-border">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-sm uppercase tracking-wider">Upcoming</h2>
           <Button variant="ghost" size="icon" className="h-8 w-8">
-            <Filter className="w-4 h-4" />
+            <Filter className="w-4 h-4" strokeWidth={1.5} />
           </Button>
         </div>
-        <Button onClick={onAddEvent} className="w-full gradient-rose text-primary-foreground border-0">
+        <Button onClick={onAddEvent} variant="gold" className="w-full">
           <Plus className="w-4 h-4 mr-2" />
-          Quick Add Event
+          Add Event
         </Button>
       </div>
 
       {/* Events List */}
       <ScrollArea className="flex-1">
-        <div className="p-3 space-y-2">
+        <div className="p-4 space-y-3">
           {events.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground text-sm">
-              <p>No upcoming events</p>
-              <p className="text-xs mt-1">Click "Quick Add" to create one</p>
+            <div className="text-center py-12">
+              <div className="divider-gold w-12 mx-auto mb-4" />
+              <p className="text-muted-foreground text-sm tracking-wide">No upcoming events</p>
             </div>
           ) : (
             events.map(event => {
@@ -51,42 +51,42 @@ export function EventsSidebar({
                 <div
                   key={event.id}
                   onClick={() => onSelectEvent(event)}
-                  className="p-3 rounded-xl bg-muted/50 hover:bg-muted cursor-pointer transition-colors border border-transparent hover:border-border"
+                  className="p-4 border border-border hover:border-gold cursor-pointer transition-colors"
                 >
                   <div className="flex items-start gap-3">
                     <div
-                      className="w-1 h-full min-h-[40px] rounded-full flex-shrink-0"
+                      className="w-px h-full min-h-[48px] flex-shrink-0"
                       style={{ backgroundColor: eventType?.color }}
                     />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <span>{eventType?.icon}</span>
-                        <h3 className="font-medium text-foreground text-sm truncate">
+                        <span className="text-sm">{eventType?.icon}</span>
+                        <h3 className="font-medium text-sm truncate tracking-wide">
                           {event.title}
                         </h3>
                       </div>
-                      <p className="text-xs text-muted-foreground mt-0.5">
+                      <p className="text-xs text-muted-foreground mt-1 tracking-wide">
                         {format(parseISO(event.date), 'EEE, MMM d')} • {event.time}
                       </p>
                       {event.location && (
                         <p className="text-xs text-muted-foreground truncate">
-                          📍 {event.location}
+                          {event.location}
                         </p>
                       )}
                       <div className="mt-2">
                         {event.outfitName ? (
-                          <Badge variant="secondary" className="text-xs bg-green-500/10 text-green-600 border-0">
-                            ✓ Outfit Planned
+                          <Badge variant="gold" className="text-[10px]">
+                            Outfit Planned
                           </Badge>
                         ) : (
-                          <Badge variant="secondary" className="text-xs bg-amber-500/10 text-amber-600 border-0">
+                          <Badge variant="outline" className="text-[10px]">
                             No Outfit
                           </Badge>
                         )}
                       </div>
                     </div>
                     {event.outfitImage && (
-                      <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0">
+                      <div className="w-10 h-10 border border-border overflow-hidden flex-shrink-0">
                         <img src={event.outfitImage} alt="" className="w-full h-full object-cover" />
                       </div>
                     )}

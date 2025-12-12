@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, CalendarDays } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CalendarView } from '@/types/calendar';
 import { format } from 'date-fns';
@@ -31,33 +31,32 @@ export function CalendarHeader({
   };
 
   return (
-    <div className="flex items-center justify-between p-4 border-b border-border bg-card">
-      <div className="flex items-center gap-4">
+    <div className="flex items-center justify-between p-6 border-b border-border bg-background">
+      <div className="flex items-center gap-6">
         <div className="flex items-center gap-1">
           <Button variant="ghost" size="icon" onClick={onPrev}>
-            <ChevronLeft className="w-5 h-5" />
+            <ChevronLeft className="w-5 h-5" strokeWidth={1.5} />
           </Button>
           <Button variant="ghost" size="icon" onClick={onNext}>
-            <ChevronRight className="w-5 h-5" />
+            <ChevronRight className="w-5 h-5" strokeWidth={1.5} />
           </Button>
         </div>
         
-        <h1 className="text-xl font-semibold text-foreground">{getTitle()}</h1>
+        <h2 className="text-xl tracking-wide">{getTitle()}</h2>
         
         <Button variant="outline" size="sm" onClick={onToday}>
-          <CalendarDays className="w-4 h-4 mr-2" />
           Today
         </Button>
       </div>
 
-      <div className="flex items-center gap-1 bg-muted rounded-lg p-1">
+      <div className="flex items-center border border-border">
         {(['month', 'week', 'day'] as CalendarView[]).map((v) => (
           <button
             key={v}
             onClick={() => onViewChange(v)}
-            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors capitalize ${
+            className={`px-4 py-2 text-xs uppercase tracking-wider transition-colors capitalize ${
               view === v
-                ? 'bg-card text-foreground shadow-sm'
+                ? 'bg-foreground text-background'
                 : 'text-muted-foreground hover:text-foreground'
             }`}
           >

@@ -1,13 +1,12 @@
 import { Link, useLocation } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import { Home, Shirt, Palette, MessageSquare, CalendarDays } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navItems = [
   { to: '/', icon: Home, label: 'Home' },
   { to: '/closet', icon: Shirt, label: 'Closet' },
-  { to: '/outfit-builder', icon: Palette, label: 'Create' },
-  { to: '/chat', icon: MessageSquare, label: 'Chat' },
+  { to: '/outfit-builder', icon: Palette, label: 'Outfits' },
+  { to: '/chat', icon: MessageSquare, label: 'Advisor' },
   { to: '/calendar', icon: CalendarDays, label: 'Calendar' },
 ];
 
@@ -15,18 +14,15 @@ export function MobileBottomNav() {
   const location = useLocation();
 
   return (
-    <motion.nav
-      initial={{ y: 100 }}
-      animate={{ y: 0 }}
-      className="fixed bottom-0 left-0 right-0 z-50 md:hidden"
+    <nav
+      className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-background border-t border-border"
       role="navigation"
       aria-label="Main navigation"
     >
-      {/* Blur background */}
-      <div className="absolute inset-0 bg-card/90 backdrop-blur-xl border-t border-border" />
-      
-      {/* Safe area padding for notched devices */}
-      <div className="relative flex items-center justify-around px-2 py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]" role="menubar">
+      <div 
+        className="flex items-center justify-around px-2 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]" 
+        role="menubar"
+      >
         {navItems.map((item) => {
           const isActive = location.pathname === item.to;
           
@@ -38,44 +34,29 @@ export function MobileBottomNav() {
               aria-current={isActive ? 'page' : undefined}
               role="menuitem"
               className={cn(
-                'flex flex-col items-center justify-center min-w-[56px] min-h-[44px] px-3 py-1.5 rounded-xl transition-all duration-200',
+                'flex flex-col items-center justify-center min-w-[56px] px-3 py-2 transition-colors duration-200',
                 isActive 
-                  ? 'text-primary' 
+                  ? 'text-gold' 
                   : 'text-muted-foreground hover:text-foreground'
               )}
             >
-              <motion.div
-                whileTap={{ scale: 0.9 }}
-                className="relative"
-              >
-                <item.icon 
-                  className={cn(
-                    'w-6 h-6 transition-all duration-200',
-                    isActive && 'scale-110'
-                  )} 
-                  aria-hidden="true"
-                />
-                
-                {/* Active indicator */}
-                {isActive && (
-                  <motion.div
-                    layoutId="bottomNavIndicator"
-                    className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary"
-                    transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                  />
-                )}
-              </motion.div>
-              
-              <span className={cn(
-                'text-[10px] mt-1 font-medium transition-all duration-200',
-                isActive ? 'opacity-100' : 'opacity-70'
-              )}>
+              <item.icon 
+                className="w-5 h-5"
+                strokeWidth={1.5}
+                aria-hidden="true"
+              />
+              <span className="text-[10px] uppercase tracking-wider mt-1">
                 {item.label}
               </span>
+              
+              {/* Active indicator - gold line */}
+              {isActive && (
+                <div className="absolute bottom-1 w-6 h-px bg-gold" />
+              )}
             </Link>
           );
         })}
       </div>
-    </motion.nav>
+    </nav>
   );
 }

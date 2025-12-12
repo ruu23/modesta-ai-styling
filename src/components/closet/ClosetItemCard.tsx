@@ -32,9 +32,9 @@ export const ClosetItemCard = memo(function ClosetItemCard({
 
   return (
     <article
-      className={`masonry-item group relative rounded-xl overflow-hidden bg-card shadow-soft transition-all duration-300 cursor-pointer ${
-        isHovered ? 'shadow-glow scale-[1.02]' : ''
-      } ${isSelected ? 'ring-2 ring-primary' : ''}`}
+      className={`group relative overflow-hidden bg-card border border-border transition-all duration-300 cursor-pointer ${
+        isSelected ? 'border-gold' : ''
+      }`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onClick={() => selectionMode ? onSelect() : onView()}
@@ -46,7 +46,7 @@ export const ClosetItemCard = memo(function ClosetItemCard({
       }}
       tabIndex={0}
       role="button"
-      aria-label={`${item.name} by ${item.brand}. ${isSelected ? 'Selected.' : ''} Press Enter to ${selectionMode ? 'toggle selection' : 'view details'}`}
+      aria-label={`${item.name} by ${item.brand}. ${isSelected ? 'Selected.' : ''}`}
       aria-pressed={selectionMode ? isSelected : undefined}
     >
       {/* Image */}
@@ -60,10 +60,10 @@ export const ClosetItemCard = memo(function ClosetItemCard({
         {/* Selection Checkbox */}
         {(selectionMode || isSelected) && (
           <div
-            className={`absolute top-3 left-3 w-6 h-6 rounded-full flex items-center justify-center transition-all ${
+            className={`absolute top-4 left-4 w-6 h-6 flex items-center justify-center transition-all border ${
               isSelected 
-                ? 'bg-primary text-primary-foreground' 
-                : 'bg-card/80 backdrop-blur-sm border border-border'
+                ? 'bg-gold border-gold text-background' 
+                : 'bg-background/80 border-border'
             }`}
             onClick={(e) => {
               e.stopPropagation();
@@ -75,14 +75,14 @@ export const ClosetItemCard = memo(function ClosetItemCard({
         )}
 
         {/* Category Badge */}
-        <Badge className="absolute top-3 right-3 bg-card/80 backdrop-blur-sm text-foreground border-0 text-xs">
+        <span className="absolute top-4 right-4 text-[10px] uppercase tracking-wider bg-background/90 px-2 py-1 text-foreground">
           {categoryLabel}
-        </Badge>
+        </span>
 
         {/* Color Dot */}
         {primaryColor && (
           <div
-            className="absolute bottom-3 left-3 w-5 h-5 rounded-full border-2 border-card shadow-sm"
+            className="absolute bottom-4 left-4 w-4 h-4 border border-background"
             style={{ backgroundColor: primaryColor.hex }}
             title={primaryColor.label}
           />
@@ -90,14 +90,14 @@ export const ClosetItemCard = memo(function ClosetItemCard({
 
         {/* Worn Count */}
         {item.wornCount > 0 && (
-          <Badge className="absolute bottom-3 right-3 bg-card/80 backdrop-blur-sm text-foreground border-0 text-xs">
-            Worn {item.wornCount}x
-          </Badge>
+          <span className="absolute bottom-4 right-4 text-[10px] uppercase tracking-wider bg-background/90 px-2 py-1 text-muted-foreground">
+            {item.wornCount}× worn
+          </span>
         )}
 
         {/* Hover Overlay */}
         <div
-          className={`absolute inset-0 bg-foreground/60 backdrop-blur-sm flex items-center justify-center gap-2 transition-opacity duration-300 ${
+          className={`absolute inset-0 bg-background/90 flex items-center justify-center gap-3 transition-opacity duration-300 ${
             isHovered && !selectionMode ? 'opacity-100' : 'opacity-0 pointer-events-none'
           }`}
         >
@@ -106,7 +106,7 @@ export const ClosetItemCard = memo(function ClosetItemCard({
               e.stopPropagation();
               onView();
             }}
-            className="w-10 h-10 rounded-full bg-card text-foreground flex items-center justify-center hover:bg-primary hover:text-primary-foreground transition-colors"
+            className="w-10 h-10 border border-foreground text-foreground flex items-center justify-center hover:bg-foreground hover:text-background transition-colors"
             title="View Details"
           >
             <Eye className="w-4 h-4" />
@@ -116,7 +116,7 @@ export const ClosetItemCard = memo(function ClosetItemCard({
               e.stopPropagation();
               onCreateOutfit();
             }}
-            className="w-10 h-10 rounded-full bg-card text-foreground flex items-center justify-center hover:bg-primary hover:text-primary-foreground transition-colors"
+            className="w-10 h-10 border border-gold text-gold flex items-center justify-center hover:bg-gold hover:text-background transition-colors"
             title="Create Outfit"
           >
             <Wand2 className="w-4 h-4" />
@@ -126,7 +126,7 @@ export const ClosetItemCard = memo(function ClosetItemCard({
               e.stopPropagation();
               onEdit();
             }}
-            className="w-10 h-10 rounded-full bg-card text-foreground flex items-center justify-center hover:bg-primary hover:text-primary-foreground transition-colors"
+            className="w-10 h-10 border border-foreground text-foreground flex items-center justify-center hover:bg-foreground hover:text-background transition-colors"
             title="Edit"
           >
             <Pencil className="w-4 h-4" />
@@ -136,7 +136,7 @@ export const ClosetItemCard = memo(function ClosetItemCard({
               e.stopPropagation();
               onDelete();
             }}
-            className="w-10 h-10 rounded-full bg-card text-foreground flex items-center justify-center hover:bg-destructive hover:text-destructive-foreground transition-colors"
+            className="w-10 h-10 border border-destructive text-destructive flex items-center justify-center hover:bg-destructive hover:text-destructive-foreground transition-colors"
             title="Delete"
           >
             <Trash2 className="w-4 h-4" />
@@ -144,10 +144,10 @@ export const ClosetItemCard = memo(function ClosetItemCard({
         </div>
       </div>
 
-      {/* Item Name (visible in list view) */}
-      <div className="p-3 hidden group-[.list-view]:block">
-        <h3 className="font-medium text-foreground truncate">{item.name}</h3>
-        <p className="text-sm text-muted-foreground">{item.brand}</p>
+      {/* Item Info */}
+      <div className="p-4 border-t border-border">
+        <h3 className="font-medium text-foreground truncate tracking-wide">{item.name}</h3>
+        <p className="text-xs text-muted-foreground uppercase tracking-wider mt-1">{item.brand}</p>
       </div>
     </article>
   );

@@ -34,24 +34,24 @@ export default memo(function Index() {
   return (
     <AppLayout showBottomNav={true}>
       <div className="min-h-screen bg-background flex flex-col">
-        {/* Minimal Header */}
-        <header className="absolute top-0 left-0 right-0 z-50 px-8 md:px-16 lg:px-24 py-8 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Shirt className="w-5 h-5 text-gold" strokeWidth={1} />
-            <span className="text-[11px] uppercase tracking-[0.3em] text-foreground">Modesta</span>
+        {/* Minimal Zara-Style Header */}
+        <header className="absolute top-0 left-0 right-0 z-50">
+          <div className="px-8 md:px-16 lg:px-24 py-6 flex items-center justify-between">
+            <span className="font-serif text-sm tracking-[0.2em] text-foreground">MODESTA</span>
+            <nav className="hidden md:flex items-center gap-16">
+              {navItems.map((item) => (
+                <Link 
+                  key={item.to} 
+                  to={item.to}
+                  className="text-[10px] uppercase tracking-[0.15em] text-muted-foreground hover:text-foreground transition-colors duration-300"
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </nav>
+            <ThemeToggle />
           </div>
-          <nav className="hidden md:flex items-center gap-12">
-            {navItems.map((item) => (
-              <Link 
-                key={item.to} 
-                to={item.to}
-                className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground transition-colors duration-300"
-              >
-                {item.label}
-              </Link>
-            ))}
-          </nav>
-          <ThemeToggle />
+          <div className="h-px bg-border/30" />
         </header>
 
         {/* Full-Width Hero Section */}
@@ -99,15 +99,18 @@ export default memo(function Index() {
           </div>
         </main>
 
-        {/* Minimal Footer */}
-        <footer className="absolute bottom-0 left-0 right-0 px-8 md:px-16 lg:px-24 py-6 flex items-center justify-between text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-          <span>© 2024</span>
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-px bg-gold" />
-            <div className="w-1.5 h-1.5 border border-gold rotate-45" />
-            <div className="w-6 h-px bg-gold" />
+        {/* Minimal Zara-Style Footer */}
+        <footer className="absolute bottom-0 left-0 right-0">
+          <div className="h-px bg-border/30" />
+          <div className="px-8 md:px-16 lg:px-24 py-5 flex items-center justify-between">
+            <span className="text-[9px] uppercase tracking-[0.15em] text-muted-foreground">© 2024 Modesta</span>
+            <svg width="16" height="24" viewBox="0 0 16 24" fill="none" className="text-gold opacity-60">
+              <ellipse cx="8" cy="5" rx="5" ry="4.5" stroke="currentColor" strokeWidth="0.5" />
+              <line x1="8" y1="9.5" x2="8" y2="23" stroke="currentColor" strokeWidth="0.5" />
+              <line x1="3" y1="14" x2="13" y2="14" stroke="currentColor" strokeWidth="0.5" />
+            </svg>
+            <span className="text-[9px] uppercase tracking-[0.15em] text-muted-foreground">Cairo · Dubai · London</span>
           </div>
-          <span>Cairo · Dubai · London</span>
         </footer>
       </div>
     </AppLayout>

@@ -4,6 +4,20 @@ import { ThemeToggle } from '@/components/theme';
 import { AppLayout } from '@/components/layout';
 import { memo } from 'react';
 
+// Editorial images
+import editorialHero from '@/assets/editorial-hero.jpg';
+import editorialCollection from '@/assets/editorial-collection.jpg';
+import editorialHijabs from '@/assets/editorial-hijabs.jpg';
+import editorialAbayas from '@/assets/editorial-abayas.jpg';
+import editorialEvening from '@/assets/editorial-evening.jpg';
+import editorialLayered from '@/assets/editorial-layered.jpg';
+import editorialAccessories from '@/assets/editorial-accessories.jpg';
+import editorialCloset from '@/assets/editorial-closet.jpg';
+import editorialRamadan from '@/assets/editorial-ramadan.jpg';
+import editorialLookbook1 from '@/assets/editorial-lookbook-1.jpg';
+import editorialLookbook2 from '@/assets/editorial-lookbook-2.jpg';
+import editorialLookbookTall from '@/assets/editorial-lookbook-tall.jpg';
+
 const navItems = [
   { to: '/closet', label: 'Collection' },
   { to: '/outfit-builder', label: 'Create' },
@@ -71,25 +85,40 @@ const CornerAccent = ({ position }: { position: 'top-left' | 'top-right' | 'bott
   );
 };
 
-// Editorial image placeholder with aspect ratio
+// Editorial image component with real images
 const EditorialImage = ({ 
+  src,
+  alt = "Editorial fashion",
   aspect = "4/5", 
   className = "",
   overlay = false,
+  grayscale = true,
   children
 }: { 
+  src?: string;
+  alt?: string;
   aspect?: string;
   className?: string;
   overlay?: boolean;
+  grayscale?: boolean;
   children?: React.ReactNode;
 }) => (
   <div 
     className={`relative bg-muted overflow-hidden ${className}`}
     style={{ aspectRatio: aspect }}
   >
-    {/* Simulated editorial image with gradient */}
-    <div className="absolute inset-0 bg-gradient-to-br from-muted via-muted-foreground/10 to-muted" />
-    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,hsl(var(--background)/0.3)_100%)]" />
+    {src ? (
+      <img 
+        src={src} 
+        alt={alt}
+        className={`absolute inset-0 w-full h-full object-cover ${grayscale ? 'grayscale' : ''}`}
+      />
+    ) : (
+      <>
+        <div className="absolute inset-0 bg-gradient-to-br from-muted via-muted-foreground/10 to-muted" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,hsl(var(--background)/0.3)_100%)]" />
+      </>
+    )}
     {overlay && (
       <div className="absolute inset-0 bg-background/20" />
     )}
@@ -127,7 +156,7 @@ export default memo(function Index() {
             <CornerAccent position="top-left" />
             <CornerAccent position="bottom-right" />
             <div className="aspect-[16/10] md:aspect-[21/9] flex items-center justify-center relative">
-              <EditorialImage aspect="auto" className="absolute inset-0 w-full h-full" overlay>
+              <EditorialImage src={editorialHero} alt="Today's suggested look" aspect="auto" className="absolute inset-0 w-full h-full" overlay>
                 <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/20 to-transparent" />
               </EditorialImage>
               <div className="relative z-10 text-center px-6">
@@ -187,7 +216,7 @@ export default memo(function Index() {
             <CornerAccent position="bottom-right" />
             <Link to="/closet" className="block">
               <div className="aspect-[16/7] md:aspect-[21/7] relative">
-                <EditorialImage aspect="auto" className="absolute inset-0 w-full h-full" overlay>
+                <EditorialImage src={editorialCloset} alt="My closet" aspect="auto" className="absolute inset-0 w-full h-full" overlay>
                   <div className="absolute inset-0 bg-gradient-to-t from-background/70 to-transparent" />
                 </EditorialImage>
                 <div className="absolute inset-0 flex flex-col items-center justify-center px-6">
@@ -235,7 +264,7 @@ export default memo(function Index() {
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             {/* Large feature image */}
             <div className="col-span-2 lg:col-span-2 lg:row-span-2 relative group">
-              <EditorialImage aspect="3/4" className="w-full">
+              <EditorialImage src={editorialCollection} alt="The Essence Collection" aspect="3/4" className="w-full">
                 <CornerAccent position="top-left" />
                 <CornerAccent position="bottom-right" />
               </EditorialImage>
@@ -248,7 +277,7 @@ export default memo(function Index() {
 
             {/* Smaller grid images */}
             <div className="relative group">
-              <EditorialImage aspect="4/5" className="w-full" />
+              <EditorialImage src={editorialAbayas} alt="Abayas collection" aspect="4/5" className="w-full" />
               <div className="absolute bottom-4 left-4">
                 <p className="text-[9px] uppercase tracking-[0.15em] text-muted-foreground">Abayas</p>
               </div>
@@ -256,7 +285,7 @@ export default memo(function Index() {
             </div>
 
             <div className="relative group">
-              <EditorialImage aspect="4/5" className="w-full" />
+              <EditorialImage src={editorialHijabs} alt="Hijabs collection" aspect="4/5" className="w-full" />
               <div className="absolute bottom-4 left-4">
                 <p className="text-[9px] uppercase tracking-[0.15em] text-muted-foreground">Hijabs</p>
               </div>
@@ -281,12 +310,12 @@ export default memo(function Index() {
         <section className="px-6 md:px-12 lg:px-20 py-24">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
             {[
-              { title: 'Modest Dresses', subtitle: 'Evening' },
-              { title: 'Layered Sets', subtitle: 'Daily' },
-              { title: 'Accessories', subtitle: 'Details' },
+              { title: 'Modest Dresses', subtitle: 'Evening', image: editorialEvening },
+              { title: 'Layered Sets', subtitle: 'Daily', image: editorialLayered },
+              { title: 'Accessories', subtitle: 'Details', image: editorialAccessories },
             ].map((item, index) => (
               <div key={index} className="relative group">
-                <EditorialImage aspect="3/4" className="w-full" />
+                <EditorialImage src={item.image} alt={item.title} aspect="3/4" className="w-full" />
                 <div className="absolute bottom-6 left-6">
                   <p className="text-[9px] uppercase tracking-[0.2em] text-muted-foreground/70 mb-1">{item.subtitle}</p>
                   <h3 className="font-serif text-lg">{item.title}</h3>
@@ -300,7 +329,7 @@ export default memo(function Index() {
 
         {/* Wide Editorial Banner */}
         <section className="relative">
-          <EditorialImage aspect="21/9" className="w-full">
+          <EditorialImage src={editorialRamadan} alt="Ramadan Edit" aspect="21/9" className="w-full">
             <CornerAccent position="top-left" />
             <CornerAccent position="top-right" />
             <CornerAccent position="bottom-left" />
@@ -331,27 +360,27 @@ export default memo(function Index() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-5">
             {/* Varied height cards for editorial feel */}
             <div className="md:row-span-2 relative group">
-              <EditorialImage aspect="2/3" className="w-full h-full" />
+              <EditorialImage src={editorialLookbookTall} alt="Lookbook tall" aspect="2/3" className="w-full h-full" />
               <div className="absolute bottom-0 left-0 right-0 h-px bg-gold/0 group-hover:bg-gold/50 transition-colors duration-500" />
             </div>
             <div className="relative group">
-              <EditorialImage aspect="1/1" className="w-full" />
+              <EditorialImage src={editorialLookbook1} alt="Lookbook 1" aspect="1/1" className="w-full" />
               <div className="absolute bottom-0 left-0 right-0 h-px bg-gold/0 group-hover:bg-gold/50 transition-colors duration-500" />
             </div>
             <div className="relative group">
-              <EditorialImage aspect="1/1" className="w-full" />
+              <EditorialImage src={editorialLookbook2} alt="Lookbook 2" aspect="1/1" className="w-full" />
               <div className="absolute bottom-0 left-0 right-0 h-px bg-gold/0 group-hover:bg-gold/50 transition-colors duration-500" />
             </div>
             <div className="md:row-span-2 relative group">
-              <EditorialImage aspect="2/3" className="w-full h-full" />
+              <EditorialImage src={editorialEvening} alt="Evening collection" aspect="2/3" className="w-full h-full" />
               <div className="absolute bottom-0 left-0 right-0 h-px bg-gold/0 group-hover:bg-gold/50 transition-colors duration-500" />
             </div>
             <div className="relative group">
-              <EditorialImage aspect="1/1" className="w-full" />
+              <EditorialImage src={editorialAccessories} alt="Accessories" aspect="1/1" className="w-full" />
               <div className="absolute bottom-0 left-0 right-0 h-px bg-gold/0 group-hover:bg-gold/50 transition-colors duration-500" />
             </div>
             <div className="relative group">
-              <EditorialImage aspect="1/1" className="w-full" />
+              <EditorialImage src={editorialLayered} alt="Layered sets" aspect="1/1" className="w-full" />
               <div className="absolute bottom-0 left-0 right-0 h-px bg-gold/0 group-hover:bg-gold/50 transition-colors duration-500" />
             </div>
           </div>

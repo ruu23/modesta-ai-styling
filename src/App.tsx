@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import { ThemeProvider } from "@/components/theme";
+import { AccessibilityProvider } from "@/components/accessibility";
 import Index from "./pages/Index";
 import Closet from "./pages/Closet";
 import OutfitBuilder from "./pages/OutfitBuilder";
@@ -34,17 +35,19 @@ function AnimatedRoutes() {
 }
 
 const App = () => (
-  <ThemeProvider defaultTheme="system" storageKey="modesta-theme">
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <AnimatedRoutes />
-        </BrowserRouter>
-      </TooltipProvider>
-    </QueryClientProvider>
-  </ThemeProvider>
+  <AccessibilityProvider>
+    <ThemeProvider defaultTheme="system" storageKey="modesta-theme">
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <AnimatedRoutes />
+          </BrowserRouter>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </ThemeProvider>
+  </AccessibilityProvider>
 );
 
 export default App;

@@ -30,19 +30,29 @@ export function ClosetItemCard({
   const primaryColor = COLORS.find(c => c.value === item.colors[0]);
 
   return (
-    <div
+    <article
       className={`masonry-item group relative rounded-xl overflow-hidden bg-card shadow-soft transition-all duration-300 cursor-pointer ${
         isHovered ? 'shadow-glow scale-[1.02]' : ''
       } ${isSelected ? 'ring-2 ring-primary' : ''}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onClick={() => selectionMode ? onSelect() : onView()}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          selectionMode ? onSelect() : onView();
+        }
+      }}
+      tabIndex={0}
+      role="button"
+      aria-label={`${item.name} by ${item.brand}. ${isSelected ? 'Selected.' : ''} Press Enter to ${selectionMode ? 'toggle selection' : 'view details'}`}
+      aria-pressed={selectionMode ? isSelected : undefined}
     >
       {/* Image */}
       <div className="relative aspect-[3/4] overflow-hidden">
         <img
           src={item.images[0]}
-          alt={item.name}
+          alt={`${item.name} - ${categoryLabel} by ${item.brand}`}
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
 
@@ -138,6 +148,6 @@ export function ClosetItemCard({
         <h3 className="font-medium text-foreground truncate">{item.name}</h3>
         <p className="text-sm text-muted-foreground">{item.brand}</p>
       </div>
-    </div>
+    </article>
   );
 }

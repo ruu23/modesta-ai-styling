@@ -37,19 +37,21 @@ export default function Index() {
         {/* Radial Gradient Overlay */}
         <div className="absolute inset-0 gradient-radial pointer-events-none" />
         
-        <div className="text-center space-y-6 md:space-y-8 px-4 relative z-10 w-full max-w-lg mx-auto">
+        <main id="main-content" className="text-center space-y-6 md:space-y-8 px-4 relative z-10 w-full max-w-lg mx-auto">
           {/* Logo */}
           <FadeIn delay={0.1}>
             <motion.div 
               className="inline-flex items-center justify-center w-16 h-16 md:w-20 md:h-20 rounded-2xl gradient-rose mb-2 md:mb-4 shadow-glow"
               whileHover={{ scale: 1.05, rotate: 5 }}
               whileTap={{ scale: 0.95 }}
+              role="img"
+              aria-label="Modesta - Your Digital Closet"
             >
               <motion.div
                 animate={isMobile ? undefined : { y: [0, -3, 0] }}
                 transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
               >
-                <Shirt className="w-8 h-8 md:w-10 md:h-10 text-primary-foreground" />
+                <Shirt className="w-8 h-8 md:w-10 md:h-10 text-primary-foreground" aria-hidden="true" />
               </motion.div>
             </motion.div>
           </FadeIn>
@@ -117,7 +119,7 @@ export default function Index() {
               ease: 'easeInOut',
             }}
           />
-        </div>
+        </main>
       </PageTransition>
     </AppLayout>
   );

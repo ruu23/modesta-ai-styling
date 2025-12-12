@@ -36,70 +36,65 @@ export function ClosetHeader({
   onAddClick,
 }: ClosetHeaderProps) {
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Title */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl gradient-rose flex items-center justify-center">
-            <Shirt className="w-5 h-5 text-primary-foreground" />
+        <div className="flex items-center gap-4">
+          <Shirt className="w-6 h-6 text-gold" strokeWidth={1} />
+          <div>
+            <h1 className="text-headline">My Collection</h1>
+            <div className="divider-gold w-16 mt-2" />
           </div>
-          <h1 className="text-2xl font-semibold text-foreground">My Closet</h1>
         </div>
-        <Button onClick={onAddClick} className="gradient-rose text-primary-foreground border-0 hover:opacity-90">
+        <Button onClick={onAddClick} variant="gold">
           <Plus className="w-4 h-4 mr-2" />
-          Add Items
+          Add Item
         </Button>
       </div>
 
       {/* Stats Bar */}
-      <div className="grid grid-cols-3 gap-4">
-        <div className="glass rounded-xl p-4 shadow-soft">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-              <Shirt className="w-5 h-5 text-primary" />
-            </div>
+      <div className="grid grid-cols-3 gap-6">
+        <div className="border border-border p-6">
+          <div className="flex items-center gap-4">
+            <Shirt className="w-5 h-5 text-gold" strokeWidth={1} />
             <div>
-              <p className="text-2xl font-semibold text-foreground">{stats.totalItems}</p>
-              <p className="text-sm text-muted-foreground">Total Items</p>
+              <p className="text-2xl font-medium">{stats.totalItems}</p>
+              <p className="text-xs uppercase tracking-wider text-muted-foreground">Pieces</p>
             </div>
           </div>
         </div>
-        <div className="glass rounded-xl p-4 shadow-soft">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-accent flex items-center justify-center">
-              <Tag className="w-5 h-5 text-accent-foreground" />
-            </div>
+        <div className="border border-border p-6">
+          <div className="flex items-center gap-4">
+            <Tag className="w-5 h-5 text-gold" strokeWidth={1} />
             <div>
-              <p className="text-2xl font-semibold text-foreground">{stats.categories}</p>
-              <p className="text-sm text-muted-foreground">Categories</p>
+              <p className="text-2xl font-medium">{stats.categories}</p>
+              <p className="text-xs uppercase tracking-wider text-muted-foreground">Categories</p>
             </div>
           </div>
         </div>
-        <div className="glass rounded-xl p-4 shadow-soft">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center">
-              <DollarSign className="w-5 h-5 text-secondary-foreground" />
-            </div>
+        <div className="border border-border p-6">
+          <div className="flex items-center gap-4">
+            <DollarSign className="w-5 h-5 text-gold" strokeWidth={1} />
             <div>
-              <p className="text-2xl font-semibold text-foreground">
+              <p className="text-2xl font-medium">
                 ${stats.totalValue.toLocaleString()}
               </p>
-              <p className="text-sm text-muted-foreground">Value Estimate</p>
+              <p className="text-xs uppercase tracking-wider text-muted-foreground">Value</p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Controls */}
-      <div className="flex items-center justify-between gap-4 flex-wrap">
-        <div className="flex items-center gap-2">
+      <div className="flex items-center justify-between gap-4 flex-wrap border-t border-b border-border py-4">
+        <div className="flex items-center gap-4">
           {/* View Toggle */}
-          <div className="flex items-center glass rounded-lg p-1">
+          <div className="flex items-center border border-border">
             <button
               onClick={() => setViewMode('grid')}
-              className={`p-2 rounded-md transition-colors ${
+              className={`p-3 transition-colors ${
                 viewMode === 'grid' 
-                  ? 'bg-primary text-primary-foreground' 
+                  ? 'bg-foreground text-background' 
                   : 'text-muted-foreground hover:text-foreground'
               }`}
             >
@@ -107,9 +102,9 @@ export function ClosetHeader({
             </button>
             <button
               onClick={() => setViewMode('list')}
-              className={`p-2 rounded-md transition-colors ${
+              className={`p-3 transition-colors ${
                 viewMode === 'list' 
-                  ? 'bg-primary text-primary-foreground' 
+                  ? 'bg-foreground text-background' 
                   : 'text-muted-foreground hover:text-foreground'
               }`}
             >
@@ -119,7 +114,7 @@ export function ClosetHeader({
 
           {/* Sort Dropdown */}
           <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortOption)}>
-            <SelectTrigger className="w-[180px] glass border-0">
+            <SelectTrigger className="w-[180px] border-border bg-transparent">
               <SelectValue placeholder="Sort by" />
             </SelectTrigger>
             <SelectContent>
@@ -135,12 +130,12 @@ export function ClosetHeader({
         <Button
           variant="outline"
           onClick={onFilterClick}
-          className="glass border-0 relative"
+          className="relative"
         >
           <SlidersHorizontal className="w-4 h-4 mr-2" />
           Filters
           {activeFilterCount > 0 && (
-            <Badge className="ml-2 h-5 w-5 p-0 flex items-center justify-center gradient-rose text-primary-foreground border-0">
+            <Badge className="ml-2 h-5 w-5 p-0 flex items-center justify-center bg-gold text-background border-0">
               {activeFilterCount}
             </Badge>
           )}

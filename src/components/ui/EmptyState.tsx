@@ -1,17 +1,16 @@
-import { motion } from 'framer-motion';
 import { ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 interface EmptyStateProps {
-  illustration: ReactNode;
+  illustration?: ReactNode;
   title: string;
   description: string;
   action?: {
     label: string;
     onClick: () => void;
     icon?: ReactNode;
-    variant?: 'default' | 'outline' | 'ghost';
+    variant?: 'default' | 'outline' | 'gold';
   };
   secondaryAction?: {
     label: string;
@@ -29,155 +28,66 @@ export function EmptyState({
   className,
 }: EmptyStateProps) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className={cn(
-        'flex flex-col items-center justify-center py-16 px-4 text-center',
-        className
-      )}
-    >
-      <div className="mb-6">{illustration}</div>
+    <div className={cn('flex flex-col items-center justify-center py-20 px-8 text-center', className)}>
+      {illustration && <div className="mb-10">{illustration}</div>}
       
-      <motion.h3
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.2 }}
-        className="text-xl md:text-2xl font-semibold text-foreground mb-2"
-      >
-        {title}
-      </motion.h3>
+      <h3 className="text-headline mb-4">{title}</h3>
+      <p className="text-muted-foreground max-w-md mb-8 tracking-wide">{description}</p>
       
-      <motion.p
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.3 }}
-        className="text-muted-foreground mb-6 max-w-md"
-      >
-        {description}
-      </motion.p>
+      <div className="divider-gold w-16 mb-8" />
       
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4 }}
-        className="flex flex-col sm:flex-row gap-3"
-      >
+      <div className="flex flex-col sm:flex-row gap-3">
         {action && (
-          <Button
-            onClick={action.onClick}
-            variant={action.variant || 'default'}
-            className={action.variant === 'default' ? 'gradient-rose text-primary-foreground border-0 hover:opacity-90' : ''}
-          >
+          <Button onClick={action.onClick} variant={action.variant || 'gold'}>
             {action.icon}
             {action.label}
           </Button>
         )}
-        
         {secondaryAction && (
           <Button variant="outline" onClick={secondaryAction.onClick}>
             {secondaryAction.label}
           </Button>
         )}
-      </motion.div>
-    </motion.div>
+      </div>
+    </div>
   );
 }
 
 interface ErrorStateProps {
-  illustration?: ReactNode;
   title?: string;
   description?: string;
-  error?: Error | string;
   onRetry?: () => void;
   onGoBack?: () => void;
   className?: string;
 }
 
 export function ErrorState({
-  illustration,
   title = 'Something went wrong',
-  description = "We couldn't complete your request. Please try again.",
-  error,
+  description = 'We could not complete your request.',
   onRetry,
   onGoBack,
   className,
 }: ErrorStateProps) {
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      className={cn(
-        'flex flex-col items-center justify-center py-16 px-4 text-center',
-        className
-      )}
-    >
-      {illustration && <div className="mb-6">{illustration}</div>}
-      
-      <h3 className="text-xl md:text-2xl font-semibold text-foreground mb-2">
-        {title}
-      </h3>
-      
-      <p className="text-muted-foreground mb-4 max-w-md">
-        {description}
-      </p>
-      
-      {error && (
-        <motion.div
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: 'auto' }}
-          className="mb-6 p-3 bg-destructive/10 border border-destructive/20 rounded-lg max-w-md w-full"
-        >
-          <p className="text-sm text-destructive font-mono">
-            {typeof error === 'string' ? error : error.message}
-          </p>
-        </motion.div>
-      )}
-      
-      <div className="flex gap-3">
-        {onRetry && (
-          <Button onClick={onRetry} className="gradient-rose text-primary-foreground border-0">
-            Try Again
-          </Button>
-        )}
-        {onGoBack && (
-          <Button variant="outline" onClick={onGoBack}>
-            Go Back
-          </Button>
-        )}
+    <div className={cn('flex flex-col items-center justify-center py-20 px-8 text-center', className)}>
+      <div className="w-12 h-12 border border-destructive flex items-center justify-center mb-8">
+        <span className="text-destructive text-xl">!</span>
       </div>
-    </motion.div>
+      <h3 className="text-headline mb-4">{title}</h3>
+      <p className="text-muted-foreground max-w-md mb-8 tracking-wide">{description}</p>
+      <div className="flex gap-3">
+        {onRetry && <Button variant="gold" onClick={onRetry}>Try Again</Button>}
+        {onGoBack && <Button variant="outline" onClick={onGoBack}>Go Back</Button>}
+      </div>
+    </div>
   );
 }
 
-// Loading state
-interface LoadingStateProps {
-  message?: string;
-  className?: string;
-}
-
-export function LoadingState({ message = 'Loading...', className }: LoadingStateProps) {
+export function LoadingState({ message = 'Loading...', className }: { message?: string; className?: string }) {
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className={cn(
-        'flex flex-col items-center justify-center py-16 px-4',
-        className
-      )}
-    >
-      <div className="relative w-16 h-16 mb-4">
-        <motion.div
-          className="absolute inset-0 border-4 border-primary/20 rounded-full"
-        />
-        <motion.div
-          className="absolute inset-0 border-4 border-transparent border-t-primary rounded-full"
-          animate={{ rotate: 360 }}
-          transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-        />
-      </div>
-      <p className="text-muted-foreground animate-pulse">{message}</p>
-    </motion.div>
+    <div className={cn('flex flex-col items-center justify-center py-20 px-8', className)}>
+      <div className="w-8 h-8 border border-border border-t-gold animate-spin mb-8" />
+      <p className="text-muted-foreground text-sm uppercase tracking-wider">{message}</p>
+    </div>
   );
 }

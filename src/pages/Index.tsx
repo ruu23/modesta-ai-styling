@@ -1,150 +1,89 @@
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Shirt, Sparkles, Palette, MessageSquare, CalendarDays, Settings } from 'lucide-react';
+import { Shirt, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/theme';
 import { AppLayout } from '@/components/layout';
-import { useIsMobile } from '@/hooks/use-mobile';
-import { PageTransition, FadeIn, StaggerChildren, StaggerItem, GradientText, IconBounce } from '@/components/animations';
-import { memo, useMemo, lazy, Suspense } from 'react';
+import { memo } from 'react';
 
-// Lazy load particle background as it's not critical for initial render
-const LazyParticleBackground = lazy(() => 
-  import('@/components/animations/ParticleBackground').then(m => ({ default: m.ParticleBackground }))
-);
-
-// Memoize nav items to prevent recreation
 const navItems = [
-  { to: '/closet', icon: Sparkles, label: 'Explore Closet', primary: true },
-  { to: '/outfit-builder', icon: Palette, label: 'Build Outfit', primary: false },
-  { to: '/chat', icon: MessageSquare, label: 'AI Stylist', primary: false },
-  { to: '/calendar', icon: CalendarDays, label: 'Calendar', primary: false },
-  { to: '/settings', icon: Settings, label: 'Settings', primary: false },
+  { to: '/closet', label: 'Explore Collection' },
+  { to: '/outfit-builder', label: 'Create Outfit' },
+  { to: '/chat', label: 'Style Advisor' },
+  { to: '/calendar', label: 'Plan Wardrobe' },
 ];
 
-// Memoized nav button component
-const NavButton = memo(function NavButton({ 
-  item, 
-  isMobile 
-}: { 
-  item: typeof navItems[number]; 
-  isMobile: boolean;
-}) {
-  return (
-    <StaggerItem>
-      <motion.div
-        whileHover={isMobile ? undefined : { scale: 1.02, y: -2 }}
-        whileTap={{ scale: 0.95 }}
-      >
-        <Button 
-          asChild 
-          size="lg" 
-          variant={item.primary ? 'default' : 'outline'}
-          className={`w-full sm:w-auto min-h-[48px] ${item.primary 
-            ? 'gradient-rose text-primary-foreground border-0 hover:opacity-90 shadow-soft' 
-            : 'hover:shadow-soft transition-all duration-300 bg-card'
-          }`}
-        >
-          <Link to={item.to}>
-            <IconBounce>
-              <item.icon className="w-5 h-5 mr-2" aria-hidden="true" />
-            </IconBounce>
-            {item.label}
-          </Link>
-        </Button>
-      </motion.div>
-    </StaggerItem>
-  );
-});
-
 export default memo(function Index() {
-  const isMobile = useIsMobile();
-  
-  // Memoize particle count
-  const particleCount = useMemo(() => isMobile ? 10 : 25, [isMobile]);
   return (
     <AppLayout showBottomNav={true}>
-      <PageTransition className="min-h-screen bg-background flex items-center justify-center relative overflow-hidden">
-        {/* Theme Toggle - Top Right (Desktop only) */}
-        <div className="absolute top-6 right-6 z-50 hidden md:block">
+      <div className="min-h-screen bg-background flex flex-col">
+        {/* Header */}
+        <header className="w-full px-6 md:px-12 py-6 flex items-center justify-between border-b border-border">
+          <div className="flex items-center gap-3">
+            <Shirt className="w-6 h-6 text-gold" strokeWidth={1} />
+            <span className="text-editorial text-foreground">MODESTA</span>
+          </div>
           <ThemeToggle />
-        </div>
+        </header>
 
-        {/* Mobile Theme Toggle */}
-        <div className="absolute top-4 right-4 z-50 md:hidden">
-          <ThemeToggle />
-        </div>
-
-        {/* Particle Background - Lazy loaded and reduced on mobile */}
-        <Suspense fallback={null}>
-          <LazyParticleBackground count={particleCount} />
-        </Suspense>
-        
-        {/* Radial Gradient Overlay */}
-        <div className="absolute inset-0 gradient-radial pointer-events-none" />
-        
-        <main id="main-content" className="text-center space-y-6 md:space-y-8 px-4 relative z-10 w-full max-w-lg mx-auto">
-          {/* Logo */}
-          <FadeIn delay={0.1}>
-            <motion.div 
-              className="inline-flex items-center justify-center w-16 h-16 md:w-20 md:h-20 rounded-2xl gradient-rose mb-2 md:mb-4 shadow-glow"
-              whileHover={{ scale: 1.05, rotate: 5 }}
-              whileTap={{ scale: 0.95 }}
-              role="img"
-              aria-label="Modesta - Your Digital Closet"
-            >
-              <motion.div
-                animate={isMobile ? undefined : { y: [0, -3, 0] }}
-                transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-              >
-                <Shirt className="w-8 h-8 md:w-10 md:h-10 text-primary-foreground" aria-hidden="true" />
-              </motion.div>
-            </motion.div>
-          </FadeIn>
+        {/* Hero Section */}
+        <main className="flex-1 flex flex-col items-center justify-center container-full section-spacing">
+          {/* Gold divider */}
+          <div className="divider-gold max-w-32 mb-12" />
           
-          {/* Title */}
-          <FadeIn delay={0.2}>
-            <div className="space-y-2 md:space-y-3">
-              <h1 className="text-3xl md:text-5xl font-semibold">
-                <GradientText>Your Digital Closet</GradientText>
-              </h1>
-              <motion.p 
-                className="text-base md:text-lg text-muted-foreground max-w-md mx-auto px-4"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.4, duration: 0.6 }}
+          {/* Main headline */}
+          <h1 className="text-display text-center mb-6">
+            Your Digital
+            <br />
+            <span className="italic">Wardrobe</span>
+          </h1>
+          
+          {/* Subheadline */}
+          <p className="text-muted-foreground text-center text-lg md:text-xl max-w-xl mb-12 tracking-wide">
+            Curate. Style. Elevate.
+          </p>
+
+          {/* Gold divider */}
+          <div className="divider-gold max-w-16 mb-16" />
+
+          {/* CTA Button */}
+          <Link to="/closet">
+            <button className="btn-luxury-gold group">
+              Enter Collection
+              <ArrowRight className="w-4 h-4 ml-3 transition-transform group-hover:translate-x-1" />
+            </button>
+          </Link>
+
+          {/* Navigation Links */}
+          <nav className="mt-20 flex flex-wrap justify-center gap-8 md:gap-12">
+            {navItems.map((item) => (
+              <Link 
+                key={item.to} 
+                to={item.to}
+                className="text-muted-foreground text-sm uppercase tracking-[0.15em] hover:text-foreground transition-colors duration-300"
               >
-                Organize your wardrobe, plan outfits, and discover your style
-              </motion.p>
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+        </main>
+
+        {/* Footer */}
+        <footer className="w-full px-6 md:px-12 py-8 border-t border-border">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <p className="text-muted-foreground text-xs uppercase tracking-[0.15em]">
+              Modest Fashion Redefined
+            </p>
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-px bg-gold" />
+              <Shirt className="w-4 h-4 text-gold" strokeWidth={1} />
+              <div className="w-8 h-px bg-gold" />
             </div>
-          </FadeIn>
-
-        {/* Navigation Buttons - Stacked on mobile */}
-        <StaggerChildren 
-          className="flex flex-col sm:flex-row sm:flex-wrap gap-3 justify-center px-4"
-          staggerDelay={isMobile ? 0.05 : 0.08}
-          initialDelay={0.3}
-        >
-          {navItems.map((item) => (
-            <NavButton key={item.to} item={item} isMobile={isMobile} />
-          ))}
-        </StaggerChildren>
-
-        {/* Decorative Elements - Smaller on mobile */}
-        <motion.div
-          className="absolute -bottom-10 md:-bottom-20 left-1/2 -translate-x-1/2 w-64 h-64 md:w-96 md:h-96 rounded-full bg-primary/5 blur-3xl"
-          animate={isMobile ? undefined : {
-            scale: [1, 1.1, 1],
-            opacity: [0.3, 0.5, 0.3],
-          }}
-          transition={{
-            duration: 4,
-            repeat: Infinity,
-            ease: 'easeInOut',
-          }}
-        />
-      </main>
-    </PageTransition>
-  </AppLayout>
+            <p className="text-muted-foreground text-xs uppercase tracking-[0.15em]">
+              © 2024 Modesta
+            </p>
+          </div>
+        </footer>
+      </div>
+    </AppLayout>
   );
 });

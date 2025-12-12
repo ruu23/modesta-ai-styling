@@ -10,6 +10,7 @@ import { ClosetSkeleton } from '@/components/closet/ClosetSkeleton';
 import { AddItemModal } from '@/components/closet/AddItemModal';
 import { ClosetItem } from '@/types/closet';
 import { useToast } from '@/hooks/use-toast';
+import { ThemeToggle } from '@/components/theme';
 
 export default function Closet() {
   const { toast } = useToast();
@@ -113,6 +114,10 @@ export default function Closet() {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Theme Toggle */}
+      <div className="fixed top-4 right-4 z-50">
+        <ThemeToggle />
+      </div>
       <div className="container max-w-7xl mx-auto px-4 py-8">
         {/* Header */}
         <ClosetHeader

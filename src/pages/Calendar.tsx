@@ -10,7 +10,7 @@ import { EventsSidebar } from '@/components/calendar/EventsSidebar';
 import { DayDetailPanel } from '@/components/calendar/DayDetailPanel';
 import { EventModal } from '@/components/calendar/EventModal';
 import { CalendarEvent } from '@/types/calendar';
-import { format } from 'date-fns';
+import { ThemeToggle } from '@/components/theme';
 
 export default function Calendar() {
   const { toast } = useToast();
@@ -106,6 +106,7 @@ export default function Calendar() {
           <Button variant="ghost" size="icon">
             <Share2 className="w-4 h-4" />
           </Button>
+          <ThemeToggle />
         </div>
       </div>
 

@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Shirt, Sparkles, Palette, MessageSquare, CalendarDays, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { ThemeToggle } from '@/components/theme';
 import { PageTransition, FadeIn, StaggerChildren, StaggerItem, ParticleBackground, GradientText, IconBounce } from '@/components/animations';
 
 const navItems = [
@@ -15,6 +16,11 @@ const navItems = [
 export default function Index() {
   return (
     <PageTransition className="min-h-screen bg-background flex items-center justify-center relative overflow-hidden">
+      {/* Theme Toggle - Top Right */}
+      <div className="absolute top-6 right-6 z-50">
+        <ThemeToggle />
+      </div>
+
       {/* Particle Background */}
       <ParticleBackground count={25} />
       
@@ -73,7 +79,7 @@ export default function Index() {
                   variant={item.primary ? 'default' : 'outline'}
                   className={item.primary 
                     ? 'gradient-rose text-primary-foreground border-0 hover:opacity-90 shadow-soft' 
-                    : 'hover:shadow-soft transition-shadow'
+                    : 'hover:shadow-soft transition-all duration-300 bg-card'
                   }
                 >
                   <Link to={item.to}>

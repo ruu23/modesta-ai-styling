@@ -14,6 +14,7 @@ import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { LazyLoad } from '@/components/ui/LazyLoad';
 import { LazyFilterSidebar, LazyItemDetailModal, LazyAddItemModal } from '@/lib/lazyComponents';
 import { OptimizedImage } from '@/components/ui/OptimizedImage';
+import { ExportModal } from '@/components/export';
 
 export default function Closet() {
   const { toast } = useToast();
@@ -44,6 +45,7 @@ export default function Closet() {
   const [selectedItem, setSelectedItem] = useState<ClosetItem | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [isAddOpen, setIsAddOpen] = useState(false);
+  const [isExportOpen, setIsExportOpen] = useState(false);
 
   const handleViewItem = useCallback((item: ClosetItem) => {
     setSelectedItem(item);
@@ -100,11 +102,8 @@ export default function Closet() {
   }, [toast]);
 
   const handleBulkExport = useCallback(() => {
-    toast({
-      title: "Export Items",
-      description: "Export functionality coming soon!",
-    });
-  }, [toast]);
+    setIsExportOpen(true);
+  }, []);
 
   const handleAddItem = useCallback((item: Parameters<typeof addItem>[0]) => {
     addItem(item);

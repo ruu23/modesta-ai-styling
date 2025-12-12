@@ -8,6 +8,7 @@ import Closet from "./pages/Closet";
 import OutfitBuilder from "./pages/OutfitBuilder";
 import Chat from "./pages/Chat";
 import Calendar from "./pages/Calendar";
+import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -24,6 +25,7 @@ const App = () => (
           <Route path="/outfit-builder" element={<OutfitBuilder />} />
           <Route path="/chat" element={<Chat />} />
           <Route path="/calendar" element={<Calendar />} />
+          <Route path="/settings" element={<Settings />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

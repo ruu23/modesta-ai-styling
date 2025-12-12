@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Sparkles, Scan, CalendarDays, ShoppingBag, Home, Shirt, Calendar, Users, User } from 'lucide-react';
 import { ThemeToggle } from '@/components/theme';
 import { AppLayout } from '@/components/layout';
 import { memo } from 'react';
@@ -9,6 +9,26 @@ const navItems = [
   { to: '/outfit-builder', label: 'Create' },
   { to: '/chat', label: 'Advisor' },
   { to: '/calendar', label: 'Calendar' },
+];
+
+const featureCards = [
+  { icon: Sparkles, title: 'AI Stylist', description: 'Personal styling advice' },
+  { icon: Scan, title: 'Body Scan', description: 'Perfect measurements' },
+  { icon: CalendarDays, title: 'Plan Outfits', description: 'Schedule your looks' },
+  { icon: ShoppingBag, title: 'Shop', description: 'Curated selections' },
+];
+
+const partnerBrands = [
+  'ZARA', 'MODANISA', 'ASOS', 'SHEIN', 'H&M', 'MANGO', 'MASSIMO DUTTI', 'COS'
+];
+
+const bottomNavItems = [
+  { icon: Home, label: 'Home', to: '/' },
+  { icon: Shirt, label: 'Closet', to: '/closet' },
+  { icon: Calendar, label: 'Calendar', to: '/calendar' },
+  { icon: Users, label: 'Friends', to: '/chat' },
+  { icon: ShoppingBag, label: 'Shop', to: '/closet' },
+  { icon: User, label: 'Profile', to: '/settings' },
 ];
 
 // Egyptian Ankh symbol
@@ -79,10 +99,10 @@ const EditorialImage = ({
 
 export default memo(function Index() {
   return (
-    <AppLayout showBottomNav={true}>
-      <div className="min-h-screen bg-background">
+    <AppLayout showBottomNav={false}>
+      <div className="min-h-screen bg-background pb-24">
         {/* Minimal Zara-Style Header */}
-        <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm">
+        <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm">
           <div className="px-6 md:px-12 lg:px-20 py-5 flex items-center justify-between">
             <span className="font-serif text-sm tracking-[0.2em] text-foreground">MODESTA</span>
             <nav className="hidden md:flex items-center gap-14">
@@ -101,31 +121,113 @@ export default memo(function Index() {
           <div className="h-px bg-border/30" />
         </header>
 
-        {/* Hero Section - Full Width Editorial */}
-        <section className="relative h-screen">
-          <EditorialImage aspect="auto" className="absolute inset-0 h-full">
-            <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
-          </EditorialImage>
-          
-          {/* Hero Content */}
-          <div className="relative z-10 h-full flex flex-col items-center justify-end pb-24 px-6">
-            <p className="text-[10px] uppercase tracking-[0.4em] text-muted-foreground mb-4">
-              The Art of Modest Elegance
-            </p>
-            <h1 className="font-serif text-5xl sm:text-6xl md:text-7xl lg:text-8xl tracking-[0.02em] text-center mb-8">
-              <span className="italic">Timeless</span> Grace
-            </h1>
-            <Link 
-              to="/closet"
-              className="inline-flex items-center gap-3 text-[10px] uppercase tracking-[0.3em] text-foreground hover:text-gold transition-colors duration-300 group"
-            >
-              <span>View Collection</span>
-              <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" strokeWidth={1} />
-            </Link>
+        {/* Today's Suggested Look Card */}
+        <section className="px-6 md:px-12 lg:px-20 pt-8 pb-6">
+          <div className="relative border border-border/40 bg-muted/30 overflow-hidden">
+            <CornerAccent position="top-left" />
+            <CornerAccent position="bottom-right" />
+            <div className="aspect-[16/10] md:aspect-[21/9] flex items-center justify-center relative">
+              <EditorialImage aspect="auto" className="absolute inset-0 w-full h-full" overlay>
+                <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/20 to-transparent" />
+              </EditorialImage>
+              <div className="relative z-10 text-center px-6">
+                <p className="text-[9px] uppercase tracking-[0.3em] text-gold/70 mb-3">Curated for You</p>
+                <h2 className="font-serif text-2xl md:text-4xl tracking-[0.02em] mb-2">Today's Suggested Look</h2>
+                <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">AI-powered styling recommendation</p>
+              </div>
+            </div>
+            <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-gold/30 to-transparent" />
           </div>
+        </section>
 
-          {/* Gold line accent at bottom */}
-          <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-gold/40 to-transparent" />
+        {/* Get AI Outfit Suggestions Button */}
+        <section className="px-6 md:px-12 lg:px-20 pb-10">
+          <Link 
+            to="/outfit-builder"
+            className="w-full flex items-center justify-center gap-3 py-5 bg-foreground text-background text-[11px] uppercase tracking-[0.25em] font-medium hover:bg-foreground/90 transition-colors duration-300 group"
+          >
+            <Sparkles className="w-4 h-4" strokeWidth={1.5} />
+            <span>Get AI Outfit Suggestions</span>
+            <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" strokeWidth={1.5} />
+          </Link>
+        </section>
+
+        {/* Feature Cards 2x2 Grid */}
+        <section className="px-6 md:px-12 lg:px-20 pb-12">
+          <div className="grid grid-cols-2 gap-4 md:gap-6">
+            {featureCards.map((card, index) => (
+              <Link 
+                key={index}
+                to={card.title === 'AI Stylist' ? '/chat' : card.title === 'Plan Outfits' ? '/calendar' : card.title === 'Shop' ? '/closet' : '/settings'}
+                className="relative border border-border/40 p-6 md:p-8 group hover:border-gold/40 transition-colors duration-300"
+              >
+                <CornerAccent position="top-left" />
+                <div className="flex flex-col items-center text-center">
+                  <div className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center mb-4 border border-border/30 group-hover:border-gold/40 transition-colors duration-300">
+                    <card.icon className="w-5 h-5 md:w-6 md:h-6 text-foreground" strokeWidth={1} />
+                  </div>
+                  <h3 className="font-serif text-base md:text-lg mb-1">{card.title}</h3>
+                  <p className="text-[9px] uppercase tracking-[0.15em] text-muted-foreground">{card.description}</p>
+                </div>
+                <div className="absolute bottom-0 left-0 right-0 h-px bg-gold/0 group-hover:bg-gold/40 transition-colors duration-500" />
+              </Link>
+            ))}
+          </div>
+        </section>
+
+        {/* Egyptian Divider */}
+        <EgyptianDivider />
+
+        {/* My Closet Section */}
+        <section className="px-6 md:px-12 lg:px-20 pb-12">
+          <div className="relative border border-border/40 overflow-hidden group hover:border-gold/40 transition-colors duration-300">
+            <CornerAccent position="top-left" />
+            <CornerAccent position="top-right" />
+            <CornerAccent position="bottom-left" />
+            <CornerAccent position="bottom-right" />
+            <Link to="/closet" className="block">
+              <div className="aspect-[16/7] md:aspect-[21/7] relative">
+                <EditorialImage aspect="auto" className="absolute inset-0 w-full h-full" overlay>
+                  <div className="absolute inset-0 bg-gradient-to-t from-background/70 to-transparent" />
+                </EditorialImage>
+                <div className="absolute inset-0 flex flex-col items-center justify-center px-6">
+                  <AnkhSymbol className="text-gold/50 mb-4" />
+                  <h2 className="font-serif text-2xl md:text-3xl tracking-[0.02em] mb-2">My Closet</h2>
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-4">Your curated collection</p>
+                  <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] text-foreground group-hover:text-gold transition-colors duration-300">
+                    <span>Browse Items</span>
+                    <ArrowRight className="w-3 h-3 transition-transform group-hover:translate-x-1" strokeWidth={1.5} />
+                  </div>
+                </div>
+              </div>
+            </Link>
+            <div className="absolute bottom-0 left-0 right-0 h-px bg-gold/0 group-hover:bg-gold/40 transition-colors duration-500" />
+          </div>
+        </section>
+
+        {/* Featured Partner Brands */}
+        <section className="pb-12">
+          <div className="px-6 md:px-12 lg:px-20 mb-6">
+            <div className="flex items-center gap-4">
+              <div className="w-8 h-px bg-gold/40" />
+              <p className="text-[9px] uppercase tracking-[0.3em] text-gold/70">Featured Partner Brands</p>
+              <div className="flex-1 h-px bg-gold/20" />
+            </div>
+          </div>
+          <div className="overflow-x-auto scrollbar-hide">
+            <div className="flex gap-8 md:gap-12 px-6 md:px-12 lg:px-20 pb-2">
+              {partnerBrands.map((brand, index) => (
+                <div 
+                  key={index}
+                  className="flex-shrink-0 py-4 px-6 border border-border/30 hover:border-gold/40 transition-colors duration-300 cursor-pointer"
+                >
+                  <span className="text-[11px] md:text-xs uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground transition-colors duration-300 whitespace-nowrap">
+                    {brand}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
         </section>
 
         {/* Editorial Grid Section 1 */}
@@ -275,13 +377,35 @@ export default memo(function Index() {
         </section>
 
         {/* Minimal Zara-Style Footer */}
-        <footer className="border-t border-border/30">
+        <footer className="border-t border-border/30 mb-20">
           <div className="px-6 md:px-12 lg:px-20 py-8 flex flex-col md:flex-row items-center justify-between gap-4">
             <span className="text-[9px] uppercase tracking-[0.15em] text-muted-foreground">© 2024 Modesta</span>
             <AnkhSymbol className="text-gold/50" />
             <span className="text-[9px] uppercase tracking-[0.15em] text-muted-foreground">Cairo · Dubai · London</span>
           </div>
         </footer>
+
+        {/* Bottom Navigation Bar */}
+        <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-t border-border/30">
+          <div className="h-px bg-gradient-to-r from-transparent via-gold/20 to-transparent" />
+          <div className="flex items-center justify-around py-3 px-4 max-w-lg mx-auto">
+            {bottomNavItems.map((item, index) => (
+              <Link
+                key={index}
+                to={item.to}
+                className="flex flex-col items-center gap-1 px-3 py-1 group"
+              >
+                <item.icon 
+                  className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors duration-300" 
+                  strokeWidth={1} 
+                />
+                <span className="text-[8px] uppercase tracking-[0.1em] text-muted-foreground group-hover:text-foreground transition-colors duration-300">
+                  {item.label}
+                </span>
+              </Link>
+            ))}
+          </div>
+        </nav>
       </div>
     </AppLayout>
   );

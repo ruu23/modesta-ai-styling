@@ -19,12 +19,14 @@ export function MobileBottomNav() {
       initial={{ y: 100 }}
       animate={{ y: 0 }}
       className="fixed bottom-0 left-0 right-0 z-50 md:hidden"
+      role="navigation"
+      aria-label="Main navigation"
     >
       {/* Blur background */}
       <div className="absolute inset-0 bg-card/90 backdrop-blur-xl border-t border-border" />
       
       {/* Safe area padding for notched devices */}
-      <div className="relative flex items-center justify-around px-2 py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
+      <div className="relative flex items-center justify-around px-2 py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]" role="menubar">
         {navItems.map((item) => {
           const isActive = location.pathname === item.to;
           
@@ -32,6 +34,9 @@ export function MobileBottomNav() {
             <Link
               key={item.to}
               to={item.to}
+              aria-label={item.label}
+              aria-current={isActive ? 'page' : undefined}
+              role="menuitem"
               className={cn(
                 'flex flex-col items-center justify-center min-w-[56px] min-h-[44px] px-3 py-1.5 rounded-xl transition-all duration-200',
                 isActive 
@@ -43,10 +48,13 @@ export function MobileBottomNav() {
                 whileTap={{ scale: 0.9 }}
                 className="relative"
               >
-                <item.icon className={cn(
-                  'w-6 h-6 transition-all duration-200',
-                  isActive && 'scale-110'
-                )} />
+                <item.icon 
+                  className={cn(
+                    'w-6 h-6 transition-all duration-200',
+                    isActive && 'scale-110'
+                  )} 
+                  aria-hidden="true"
+                />
                 
                 {/* Active indicator */}
                 {isActive && (

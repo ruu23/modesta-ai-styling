@@ -40,53 +40,56 @@ export function CalendarGrid({
     const weather = getWeather(days[0]);
 
     return (
-      <div className="flex-1 p-6 bg-muted/30">
+      <div className="flex-1 p-8 bg-background">
         <div className="max-w-2xl mx-auto">
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center justify-between mb-8">
             <div>
-              <h2 className="text-2xl font-semibold text-foreground">
+              <h2 className="text-headline">
                 {format(days[0], 'EEEE, MMMM d')}
               </h2>
-              <div className="flex items-center gap-2 mt-1 text-muted-foreground">
+              <div className="flex items-center gap-2 mt-2 text-muted-foreground text-sm">
                 <span>{weather.icon}</span>
                 <span>{weather.temp}°C</span>
               </div>
             </div>
             <button
               onClick={() => onAddEvent(days[0])}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl gradient-rose text-primary-foreground"
+              className="btn-luxury-gold"
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="w-4 h-4 mr-2" />
               Add Event
             </button>
           </div>
 
           {dayEvents.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground">
-              <p>No events scheduled for this day</p>
+            <div className="text-center py-16 border border-border">
+              <div className="divider-gold w-16 mx-auto mb-6" />
+              <p className="text-muted-foreground tracking-wide">No events scheduled</p>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-4">
               {dayEvents.map(event => (
                 <div
                   key={event.id}
-                  className="p-4 rounded-xl bg-card border border-border shadow-soft hover:shadow-md transition-shadow cursor-pointer"
+                  className="p-6 border border-border hover:border-gold transition-colors cursor-pointer"
                   onClick={() => onSelectDate(days[0])}
                 >
-                  <div className="flex items-start gap-3">
+                  <div className="flex items-start gap-4">
                     <div
-                      className="w-1 h-12 rounded-full"
+                      className="w-px h-16"
                       style={{ backgroundColor: getEventColor(event.type) }}
                     />
                     <div className="flex-1">
-                      <h3 className="font-medium text-foreground">{event.title}</h3>
-                      <p className="text-sm text-muted-foreground">{event.time}{event.endTime && ` - ${event.endTime}`}</p>
+                      <h3 className="font-medium tracking-wide">{event.title}</h3>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {event.time}{event.endTime && ` — ${event.endTime}`}
+                      </p>
                       {event.location && (
                         <p className="text-sm text-muted-foreground">{event.location}</p>
                       )}
                     </div>
                     {event.outfitImage && (
-                      <div className="w-12 h-12 rounded-lg overflow-hidden">
+                      <div className="w-16 h-16 border border-border overflow-hidden">
                         <img src={event.outfitImage} alt="" className="w-full h-full object-cover" />
                       </div>
                     )}
@@ -101,11 +104,11 @@ export function CalendarGrid({
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-muted/30">
+    <div className="flex-1 flex flex-col bg-background">
       {/* Week day headers */}
-      <div className="grid grid-cols-7 border-b border-border bg-card">
+      <div className="grid grid-cols-7 border-b border-border">
         {weekDays.map(day => (
-          <div key={day} className="px-2 py-3 text-center text-sm font-medium text-muted-foreground">
+          <div key={day} className="px-2 py-4 text-center text-xs uppercase tracking-wider text-muted-foreground">
             {day}
           </div>
         ))}
@@ -126,25 +129,24 @@ export function CalendarGrid({
             <div
               key={index}
               onClick={() => onSelectDate(day)}
-              className={`min-h-[120px] p-2 border-b border-r border-border bg-card cursor-pointer group transition-all hover:bg-muted/50 ${
+              className={`min-h-[120px] p-3 border-b border-r border-border cursor-pointer group transition-all hover:bg-muted/30 ${
                 !isCurrentMonth ? 'opacity-40' : ''
-              } ${isPastDate ? 'opacity-60' : ''} ${
-                isSelected ? 'ring-2 ring-primary ring-inset' : ''
+              } ${isPastDate ? 'opacity-50' : ''} ${
+                isSelected ? 'bg-muted/50' : ''
               }`}
             >
               {/* Date header */}
-              <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center justify-between mb-2">
                 <span
-                  className={`inline-flex items-center justify-center w-7 h-7 rounded-full text-sm font-medium ${
+                  className={`inline-flex items-center justify-center w-7 h-7 text-sm ${
                     isTodayDate
-                      ? 'bg-primary text-primary-foreground'
-                      : 'text-foreground'
+                      ? 'bg-gold text-black'
+                      : ''
                   }`}
                 >
                   {format(day, 'd')}
                 </span>
                 
-                {/* Weather */}
                 <div className="flex items-center gap-1 text-xs text-muted-foreground">
                   <span>{weather.icon}</span>
                   <span>{weather.temp}°</span>
@@ -156,18 +158,14 @@ export function CalendarGrid({
                 {events.slice(0, 2).map(event => (
                   <div
                     key={event.id}
-                    className="flex items-center gap-1.5 px-1.5 py-0.5 rounded text-xs truncate"
-                    style={{ backgroundColor: `${getEventColor(event.type)}20` }}
+                    className="flex items-center gap-1.5 px-2 py-1 text-xs truncate border-l-2"
+                    style={{ borderLeftColor: getEventColor(event.type) }}
                   >
-                    <div
-                      className="w-1.5 h-1.5 rounded-full flex-shrink-0"
-                      style={{ backgroundColor: getEventColor(event.type) }}
-                    />
-                    <span className="truncate text-foreground">{event.title}</span>
+                    <span className="truncate">{event.title}</span>
                   </div>
                 ))}
                 {events.length > 2 && (
-                  <div className="text-xs text-muted-foreground px-1.5">
+                  <div className="text-xs text-muted-foreground px-2">
                     +{events.length - 2} more
                   </div>
                 )}
@@ -175,8 +173,8 @@ export function CalendarGrid({
 
               {/* Outfit thumbnail */}
               {hasOutfit && (
-                <div className="mt-1">
-                  <div className="w-8 h-8 rounded overflow-hidden border border-border">
+                <div className="mt-2">
+                  <div className="w-8 h-8 border border-gold overflow-hidden">
                     <img
                       src={events.find(e => e.outfitImage)?.outfitImage}
                       alt=""
@@ -193,7 +191,7 @@ export function CalendarGrid({
                     e.stopPropagation();
                     onAddEvent(day);
                   }}
-                  className="opacity-0 group-hover:opacity-100 mt-2 w-full py-1 rounded text-xs text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all flex items-center justify-center gap-1"
+                  className="opacity-0 group-hover:opacity-100 mt-2 w-full py-1 text-xs text-muted-foreground hover:text-gold transition-all flex items-center justify-center gap-1"
                 >
                   <Plus className="w-3 h-3" />
                   Add

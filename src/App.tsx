@@ -6,15 +6,27 @@ import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import { ThemeProvider } from "@/components/theme";
 import { AccessibilityProvider } from "@/components/accessibility";
+import { LazyPage } from "@/components/ui/LazyLoad";
+import { 
+  LazyCloset, 
+  LazyOutfitBuilder, 
+  LazyChat, 
+  LazyCalendar, 
+  LazySettings 
+} from "@/lib/lazyComponents";
 import Index from "./pages/Index";
-import Closet from "./pages/Closet";
-import OutfitBuilder from "./pages/OutfitBuilder";
-import Chat from "./pages/Chat";
-import Calendar from "./pages/Calendar";
-import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      gcTime: 1000 * 60 * 30, // 30 minutes (formerly cacheTime)
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+});
 
 function AnimatedRoutes() {
   const location = useLocation();
@@ -23,11 +35,46 @@ function AnimatedRoutes() {
     <AnimatePresence mode="wait" initial={false}>
       <Routes location={location} key={location.pathname}>
         <Route path="/" element={<Index />} />
-        <Route path="/closet" element={<Closet />} />
-        <Route path="/outfit-builder" element={<OutfitBuilder />} />
-        <Route path="/chat" element={<Chat />} />
-        <Route path="/calendar" element={<Calendar />} />
-        <Route path="/settings" element={<Settings />} />
+        <Route 
+          path="/closet" 
+          element={
+            <LazyPage>
+              <LazyCloset />
+            </LazyPage>
+          } 
+        />
+        <Route 
+          path="/outfit-builder" 
+          element={
+            <LazyPage>
+              <LazyOutfitBuilder />
+            </LazyPage>
+          } 
+        />
+        <Route 
+          path="/chat" 
+          element={
+            <LazyPage>
+              <LazyChat />
+            </LazyPage>
+          } 
+        />
+        <Route 
+          path="/calendar" 
+          element={
+            <LazyPage>
+              <LazyCalendar />
+            </LazyPage>
+          } 
+        />
+        <Route 
+          path="/settings" 
+          element={
+            <LazyPage>
+              <LazySettings />
+            </LazyPage>
+          } 
+        />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AnimatePresence>

@@ -1,19 +1,19 @@
-import { useState } from 'react';
+import { useState, useMemo, useCallback, Suspense } from 'react';
 import { useCloset } from '@/hooks/useCloset';
 import { ClosetHeader } from '@/components/closet/ClosetHeader';
-import { FilterSidebar } from '@/components/closet/FilterSidebar';
 import { ClosetItemCard } from '@/components/closet/ClosetItemCard';
-import { ItemDetailModal } from '@/components/closet/ItemDetailModal';
 import { BulkActionBar } from '@/components/closet/BulkActionBar';
 import { EmptyCloset } from '@/components/closet/EmptyCloset';
 import { ClosetSkeleton } from '@/components/closet/ClosetSkeleton';
-import { AddItemModal } from '@/components/closet/AddItemModal';
 import { ClosetItem } from '@/types/closet';
 import { useToast } from '@/hooks/use-toast';
 import { ThemeToggle } from '@/components/theme';
 import { AppLayout } from '@/components/layout';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
+import { LazyLoad } from '@/components/ui/LazyLoad';
+import { LazyFilterSidebar, LazyItemDetailModal, LazyAddItemModal } from '@/lib/lazyComponents';
+import { OptimizedImage } from '@/components/ui/OptimizedImage';
 
 export default function Closet() {
   const { toast } = useToast();
@@ -45,19 +45,19 @@ export default function Closet() {
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [isAddOpen, setIsAddOpen] = useState(false);
 
-  const handleViewItem = (item: ClosetItem) => {
+  const handleViewItem = useCallback((item: ClosetItem) => {
     setSelectedItem(item);
     setIsDetailOpen(true);
-  };
+  }, []);
 
-  const handleEditItem = () => {
+  const handleEditItem = useCallback(() => {
     toast({
       title: "Edit Item",
       description: "Edit functionality coming soon!",
     });
-  };
+  }, [toast]);
 
-  const handleDeleteItem = (id?: string) => {
+  const handleDeleteItem = useCallback((id?: string) => {
     const itemId = id || selectedItem?.id;
     if (itemId) {
       deleteItem(itemId);
@@ -68,53 +68,56 @@ export default function Closet() {
         description: "The item has been removed from your closet.",
       });
     }
-  };
+  }, [selectedItem?.id, deleteItem, toast]);
 
-  const handleBulkDelete = () => {
+  const handleBulkDelete = useCallback(() => {
     deleteItems(selectedItems);
     toast({
       title: "Items Deleted",
       description: `${selectedItems.length} items have been removed.`,
     });
-  };
+  }, [deleteItems, selectedItems, toast]);
 
-  const handleCreateOutfit = () => {
+  const handleCreateOutfit = useCallback(() => {
     toast({
       title: "Create Outfit",
       description: "Outfit maker coming soon!",
     });
-  };
+  }, [toast]);
 
-  const handleBulkMove = () => {
+  const handleBulkMove = useCallback(() => {
     toast({
       title: "Move Items",
       description: "Move functionality coming soon!",
     });
-  };
+  }, [toast]);
 
-  const handleBulkTag = () => {
+  const handleBulkTag = useCallback(() => {
     toast({
       title: "Tag Items",
       description: "Tagging functionality coming soon!",
     });
-  };
+  }, [toast]);
 
-  const handleBulkExport = () => {
+  const handleBulkExport = useCallback(() => {
     toast({
       title: "Export Items",
       description: "Export functionality coming soon!",
     });
-  };
+  }, [toast]);
 
-  const handleAddItem = (item: Parameters<typeof addItem>[0]) => {
+  const handleAddItem = useCallback((item: Parameters<typeof addItem>[0]) => {
     addItem(item);
     toast({
       title: "Item Added",
       description: "Your new item has been added to the closet!",
     });
-  };
+  }, [addItem, toast]);
 
-  const similarItems = selectedItem ? findSimilarItems(selectedItem) : [];
+  const similarItems = useMemo(() => 
+    selectedItem ? findSimilarItems(selectedItem) : [], 
+    [selectedItem, findSimilarItems]
+  );
 
   return (
     <AppLayout showBottomNav={true}>
@@ -184,13 +187,11 @@ export default function Closet() {
                     style={{ animationDelay: `${Math.min(index * 30, 300)}ms` }}
                     onClick={() => handleViewItem(item)}
                   >
-                    <div className="w-16 h-16 md:w-20 md:h-20 rounded-lg overflow-hidden flex-shrink-0">
-                      <img
-                        src={item.images[0]}
-                        alt={item.name}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
+                    <OptimizedImage
+                      src={item.images[0]}
+                      alt={item.name}
+                      className="w-16 h-16 md:w-20 md:h-20 rounded-lg flex-shrink-0"
+                    />
                     <div className="flex-1 min-w-0">
                       <h3 className="font-medium text-foreground truncate text-sm md:text-base">{item.name}</h3>
                       <p className="text-xs md:text-sm text-muted-foreground">{item.brand}</p>
@@ -210,8 +211,26 @@ export default function Closet() {
         {isMobile ? (
           <Sheet open={isFilterOpen} onOpenChange={setIsFilterOpen}>
             <SheetContent side="bottom" className="h-[85vh] rounded-t-2xl p-0">
-              <FilterSidebar
-                isOpen={true}
+              <LazyLoad minHeight="400px">
+                <Suspense fallback={<div className="p-4">Loading filters...</div>}>
+                  <LazyFilterSidebar
+                    isOpen={true}
+                    onClose={() => setIsFilterOpen(false)}
+                    filters={filters}
+                    setFilters={setFilters}
+                    categoryCounts={categoryCounts}
+                    brands={brands}
+                    onClearFilters={clearFilters}
+                  />
+                </Suspense>
+              </LazyLoad>
+            </SheetContent>
+          </Sheet>
+        ) : (
+          isFilterOpen && (
+            <Suspense fallback={<div className="p-4">Loading filters...</div>}>
+              <LazyFilterSidebar
+                isOpen={isFilterOpen}
                 onClose={() => setIsFilterOpen(false)}
                 filters={filters}
                 setFilters={setFilters}
@@ -219,43 +238,41 @@ export default function Closet() {
                 brands={brands}
                 onClearFilters={clearFilters}
               />
-            </SheetContent>
-          </Sheet>
-        ) : (
-          <FilterSidebar
-            isOpen={isFilterOpen}
-            onClose={() => setIsFilterOpen(false)}
-            filters={filters}
-            setFilters={setFilters}
-            categoryCounts={categoryCounts}
-            brands={brands}
-            onClearFilters={clearFilters}
-          />
+            </Suspense>
+          )
         )}
 
-        {/* Item Detail Modal */}
-        <ItemDetailModal
-          item={selectedItem}
-          isOpen={isDetailOpen}
-          onClose={() => {
-            setIsDetailOpen(false);
-            setSelectedItem(null);
-          }}
-          onEdit={handleEditItem}
-          onDelete={() => handleDeleteItem()}
-          onCreateOutfit={handleCreateOutfit}
-          similarItems={similarItems}
-          onViewSimilar={(item) => {
-            setSelectedItem(item);
-          }}
-        />
+        {/* Item Detail Modal - Lazy loaded */}
+        {isDetailOpen && (
+          <Suspense fallback={null}>
+            <LazyItemDetailModal
+              item={selectedItem}
+              isOpen={isDetailOpen}
+              onClose={() => {
+                setIsDetailOpen(false);
+                setSelectedItem(null);
+              }}
+              onEdit={handleEditItem}
+              onDelete={() => handleDeleteItem()}
+              onCreateOutfit={handleCreateOutfit}
+              similarItems={similarItems}
+              onViewSimilar={(item) => {
+                setSelectedItem(item);
+              }}
+            />
+          </Suspense>
+        )}
 
-        {/* Add Item Modal */}
-        <AddItemModal
-          isOpen={isAddOpen}
-          onClose={() => setIsAddOpen(false)}
-          onAdd={handleAddItem}
-        />
+        {/* Add Item Modal - Lazy loaded */}
+        {isAddOpen && (
+          <Suspense fallback={null}>
+            <LazyAddItemModal
+              isOpen={isAddOpen}
+              onClose={() => setIsAddOpen(false)}
+              onAdd={handleAddItem}
+            />
+          </Suspense>
+        )}
 
         {/* Bulk Action Bar */}
         <BulkActionBar

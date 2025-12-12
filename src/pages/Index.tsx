@@ -3,6 +3,7 @@ import { ArrowRight, Sparkles, Scan, CalendarDays, ShoppingBag, Home, Shirt, Cal
 import { ThemeToggle } from '@/components/theme';
 import { AppLayout } from '@/components/layout';
 import { memo } from 'react';
+import { motion } from 'framer-motion';
 
 const navItems = [
   { to: '/closet', label: 'Collection' },
@@ -31,6 +32,53 @@ const bottomNavItems = [
   { icon: User, label: 'Profile', to: '/settings' },
 ];
 
+// Scroll reveal animation variants
+const fadeInUp = {
+  hidden: { opacity: 0, y: 40 },
+  visible: { 
+    opacity: 1, 
+    y: 0,
+    transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] as const }
+  }
+};
+
+const fadeIn = {
+  hidden: { opacity: 0 },
+  visible: { 
+    opacity: 1,
+    transition: { duration: 0.6, ease: "easeOut" as const }
+  }
+};
+
+const staggerContainer = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.15,
+      delayChildren: 0.1
+    }
+  }
+};
+
+const staggerItem = {
+  hidden: { opacity: 0, y: 30 },
+  visible: { 
+    opacity: 1, 
+    y: 0,
+    transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] as const }
+  }
+};
+
+const scaleIn = {
+  hidden: { opacity: 0, scale: 0.95 },
+  visible: { 
+    opacity: 1, 
+    scale: 1,
+    transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] as const }
+  }
+};
+
 // Egyptian Ankh symbol
 const AnkhSymbol = ({ className = "" }: { className?: string }) => (
   <svg width="16" height="24" viewBox="0 0 16 24" fill="none" className={className}>
@@ -42,11 +90,35 @@ const AnkhSymbol = ({ className = "" }: { className?: string }) => (
 
 // Thin gold decorative line with Egyptian motif
 const EgyptianDivider = () => (
-  <div className="flex items-center justify-center gap-4 py-16">
-    <div className="w-24 h-px bg-gold/40" />
-    <div className="w-1.5 h-1.5 border border-gold/60 rotate-45" />
-    <div className="w-24 h-px bg-gold/40" />
-  </div>
+  <motion.div 
+    className="flex items-center justify-center gap-4 py-16"
+    initial="hidden"
+    whileInView="visible"
+    viewport={{ once: true, margin: "-50px" }}
+    variants={fadeIn}
+  >
+    <motion.div 
+      className="w-24 h-px bg-gold/40" 
+      initial={{ scaleX: 0 }}
+      whileInView={{ scaleX: 1 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.8, ease: "easeOut" }}
+    />
+    <motion.div 
+      className="w-1.5 h-1.5 border border-gold/60 rotate-45"
+      initial={{ opacity: 0, rotate: 0 }}
+      whileInView={{ opacity: 1, rotate: 45 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.5, delay: 0.3 }}
+    />
+    <motion.div 
+      className="w-24 h-px bg-gold/40" 
+      initial={{ scaleX: 0 }}
+      whileInView={{ scaleX: 1 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.8, ease: "easeOut" }}
+    />
+  </motion.div>
 );
 
 // Corner accent for sections
@@ -102,27 +174,43 @@ export default memo(function Index() {
     <AppLayout showBottomNav={false}>
       <div className="min-h-screen bg-background pb-24">
         {/* Minimal Zara-Style Header */}
-        <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm">
+        <motion.header 
+          className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+        >
           <div className="px-6 md:px-12 lg:px-20 py-5 flex items-center justify-between">
             <span className="font-serif text-sm tracking-[0.2em] text-foreground">MODESTA</span>
             <nav className="hidden md:flex items-center gap-14">
-              {navItems.map((item) => (
-                <Link 
-                  key={item.to} 
-                  to={item.to}
-                  className="text-[10px] uppercase tracking-[0.15em] text-muted-foreground hover:text-foreground transition-colors duration-300"
+              {navItems.map((item, index) => (
+                <motion.div
+                  key={item.to}
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.1 * index }}
                 >
-                  {item.label}
-                </Link>
+                  <Link 
+                    to={item.to}
+                    className="text-[10px] uppercase tracking-[0.15em] text-muted-foreground hover:text-foreground transition-colors duration-300"
+                  >
+                    {item.label}
+                  </Link>
+                </motion.div>
               ))}
             </nav>
             <ThemeToggle />
           </div>
           <div className="h-px bg-border/30" />
-        </header>
+        </motion.header>
 
         {/* Today's Suggested Look Card */}
-        <section className="px-6 md:px-12 lg:px-20 pt-8 pb-6">
+        <motion.section 
+          className="px-6 md:px-12 lg:px-20 pt-8 pb-6"
+          initial="hidden"
+          animate="visible"
+          variants={fadeInUp}
+        >
           <div className="relative border border-border/40 bg-muted/30 overflow-hidden">
             <CornerAccent position="top-left" />
             <CornerAccent position="bottom-right" />
@@ -181,19 +269,29 @@ export default memo(function Index() {
               
               {/* Right Panel - Text Content */}
               <div className="flex items-center justify-center relative bg-gradient-to-l from-background via-background to-transparent">
-                <div className="relative z-10 text-center px-6 md:px-12">
+                <motion.div 
+                  className="relative z-10 text-center px-6 md:px-12"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                >
                   <p className="text-[9px] uppercase tracking-[0.3em] text-gold/70 mb-3">Curated for You</p>
                   <h2 className="font-serif text-2xl md:text-4xl tracking-[0.02em] mb-2">Today's Suggested Look</h2>
                   <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">AI-powered styling recommendation</p>
-                </div>
+                </motion.div>
               </div>
             </div>
             <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-gold/30 to-transparent" />
           </div>
-        </section>
+        </motion.section>
 
         {/* Get AI Outfit Suggestions Button */}
-        <section className="px-6 md:px-12 lg:px-20 pb-10">
+        <motion.section 
+          className="px-6 md:px-12 lg:px-20 pb-10"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+        >
           <Link 
             to="/outfit-builder"
             className="w-full flex items-center justify-center gap-3 py-5 bg-foreground text-background text-[11px] uppercase tracking-[0.25em] font-medium hover:bg-foreground/90 transition-colors duration-300 group"
@@ -202,36 +300,49 @@ export default memo(function Index() {
             <span>Get AI Outfit Suggestions</span>
             <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" strokeWidth={1.5} />
           </Link>
-        </section>
+        </motion.section>
 
         {/* Feature Cards 2x2 Grid */}
-        <section className="px-6 md:px-12 lg:px-20 pb-12">
+        <motion.section 
+          className="px-6 md:px-12 lg:px-20 pb-12"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-100px" }}
+          variants={staggerContainer}
+        >
           <div className="grid grid-cols-2 gap-4 md:gap-6">
             {featureCards.map((card, index) => (
-              <Link 
-                key={index}
-                to={card.title === 'AI Stylist' ? '/chat' : card.title === 'Plan Outfits' ? '/calendar' : card.title === 'Shop' ? '/closet' : '/settings'}
-                className="relative border border-border/40 p-6 md:p-8 group hover:border-gold/40 transition-colors duration-300"
-              >
-                <CornerAccent position="top-left" />
-                <div className="flex flex-col items-center text-center">
-                  <div className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center mb-4 border border-border/30 group-hover:border-gold/40 transition-colors duration-300">
-                    <card.icon className="w-5 h-5 md:w-6 md:h-6 text-foreground" strokeWidth={1} />
+              <motion.div key={index} variants={staggerItem}>
+                <Link 
+                  to={card.title === 'AI Stylist' ? '/chat' : card.title === 'Plan Outfits' ? '/calendar' : card.title === 'Shop' ? '/closet' : '/settings'}
+                  className="relative border border-border/40 p-6 md:p-8 group hover:border-gold/40 transition-colors duration-300 block"
+                >
+                  <CornerAccent position="top-left" />
+                  <div className="flex flex-col items-center text-center">
+                    <div className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center mb-4 border border-border/30 group-hover:border-gold/40 transition-colors duration-300">
+                      <card.icon className="w-5 h-5 md:w-6 md:h-6 text-foreground" strokeWidth={1} />
+                    </div>
+                    <h3 className="font-serif text-base md:text-lg mb-1">{card.title}</h3>
+                    <p className="text-[9px] uppercase tracking-[0.15em] text-muted-foreground">{card.description}</p>
                   </div>
-                  <h3 className="font-serif text-base md:text-lg mb-1">{card.title}</h3>
-                  <p className="text-[9px] uppercase tracking-[0.15em] text-muted-foreground">{card.description}</p>
-                </div>
-                <div className="absolute bottom-0 left-0 right-0 h-px bg-gold/0 group-hover:bg-gold/40 transition-colors duration-500" />
-              </Link>
+                  <div className="absolute bottom-0 left-0 right-0 h-px bg-gold/0 group-hover:bg-gold/40 transition-colors duration-500" />
+                </Link>
+              </motion.div>
             ))}
           </div>
-        </section>
+        </motion.section>
 
         {/* Egyptian Divider */}
         <EgyptianDivider />
 
         {/* My Closet Section */}
-        <section className="px-6 md:px-12 lg:px-20 pb-12">
+        <motion.section 
+          className="px-6 md:px-12 lg:px-20 pb-12"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-100px" }}
+          variants={scaleIn}
+        >
           <div className="relative border border-border/40 overflow-hidden group hover:border-gold/40 transition-colors duration-300">
             <CornerAccent position="top-left" />
             <CornerAccent position="top-right" />
@@ -255,10 +366,16 @@ export default memo(function Index() {
             </Link>
             <div className="absolute bottom-0 left-0 right-0 h-px bg-gold/0 group-hover:bg-gold/40 transition-colors duration-500" />
           </div>
-        </section>
+        </motion.section>
 
         {/* Featured Partner Brands */}
-        <section className="pb-12">
+        <motion.section 
+          className="pb-12"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-50px" }}
+          variants={fadeInUp}
+        >
           <div className="px-6 md:px-12 lg:px-20 mb-6">
             <div className="flex items-center gap-4">
               <div className="w-8 h-px bg-gold/40" />
@@ -267,26 +384,39 @@ export default memo(function Index() {
             </div>
           </div>
           <div className="overflow-x-auto scrollbar-hide">
-            <div className="flex gap-8 md:gap-12 px-6 md:px-12 lg:px-20 pb-2">
+            <motion.div 
+              className="flex gap-8 md:gap-12 px-6 md:px-12 lg:px-20 pb-2"
+              variants={staggerContainer}
+            >
               {partnerBrands.map((brand, index) => (
-                <div 
+                <motion.div 
                   key={index}
                   className="flex-shrink-0 py-4 px-6 border border-border/30 hover:border-gold/40 transition-colors duration-300 cursor-pointer"
+                  variants={staggerItem}
                 >
                   <span className="text-[11px] md:text-xs uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground transition-colors duration-300 whitespace-nowrap">
                     {brand}
                   </span>
-                </div>
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
           </div>
-        </section>
+        </motion.section>
 
         {/* Editorial Grid Section 1 */}
-        <section className="px-6 md:px-12 lg:px-20 py-24">
+        <motion.section 
+          className="px-6 md:px-12 lg:px-20 py-24"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-100px" }}
+          variants={staggerContainer}
+        >
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             {/* Large feature image */}
-            <div className="col-span-2 lg:col-span-2 lg:row-span-2 relative group">
+            <motion.div 
+              className="col-span-2 lg:col-span-2 lg:row-span-2 relative group"
+              variants={staggerItem}
+            >
               <EditorialImage aspect="3/4" className="w-full">
                 <CornerAccent position="top-left" />
                 <CornerAccent position="bottom-right" />
@@ -296,48 +426,60 @@ export default memo(function Index() {
                 <h3 className="font-serif text-xl md:text-2xl">The Essence Collection</h3>
               </div>
               <div className="absolute bottom-0 left-0 right-0 h-px bg-gold/0 group-hover:bg-gold/40 transition-colors duration-500" />
-            </div>
+            </motion.div>
 
             {/* Smaller grid images */}
-            <div className="relative group">
+            <motion.div className="relative group" variants={staggerItem}>
               <EditorialImage aspect="4/5" className="w-full" />
               <div className="absolute bottom-4 left-4">
                 <p className="text-[9px] uppercase tracking-[0.15em] text-muted-foreground">Abayas</p>
               </div>
               <div className="absolute bottom-0 left-0 right-0 h-px bg-gold/0 group-hover:bg-gold/40 transition-colors duration-500" />
-            </div>
+            </motion.div>
 
-            <div className="relative group">
+            <motion.div className="relative group" variants={staggerItem}>
               <EditorialImage aspect="4/5" className="w-full" />
               <div className="absolute bottom-4 left-4">
                 <p className="text-[9px] uppercase tracking-[0.15em] text-muted-foreground">Hijabs</p>
               </div>
               <div className="absolute bottom-0 left-0 right-0 h-px bg-gold/0 group-hover:bg-gold/40 transition-colors duration-500" />
-            </div>
+            </motion.div>
           </div>
-        </section>
+        </motion.section>
 
         {/* Egyptian Divider */}
         <EgyptianDivider />
 
         {/* Full Width Statement */}
-        <section className="px-6 md:px-12 lg:px-20 py-12 text-center">
+        <motion.section 
+          className="px-6 md:px-12 lg:px-20 py-12 text-center"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-100px" }}
+          variants={fadeInUp}
+        >
           <p className="text-[10px] uppercase tracking-[0.4em] text-gold/70 mb-6">Crafted for You</p>
           <h2 className="font-serif text-3xl md:text-4xl lg:text-5xl tracking-[0.02em] max-w-3xl mx-auto leading-relaxed">
             Where <span className="italic">tradition</span> meets
             <br />contemporary elegance
           </h2>
-        </section>
+        </motion.section>
 
         {/* Editorial Grid Section 2 - Three Column */}
-        <section className="px-6 md:px-12 lg:px-20 py-24">
+        <motion.section 
+          className="px-6 md:px-12 lg:px-20 py-24"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-100px" }}
+          variants={staggerContainer}
+        >
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
             {[
               { title: 'Modest Dresses', subtitle: 'Evening' },
               { title: 'Layered Sets', subtitle: 'Daily' },
               { title: 'Accessories', subtitle: 'Details' },
             ].map((item, index) => (
-              <div key={index} className="relative group">
+              <motion.div key={index} className="relative group" variants={staggerItem}>
                 <EditorialImage aspect="3/4" className="w-full" />
                 <div className="absolute bottom-6 left-6">
                   <p className="text-[9px] uppercase tracking-[0.2em] text-muted-foreground/70 mb-1">{item.subtitle}</p>
@@ -345,13 +487,19 @@ export default memo(function Index() {
                 </div>
                 {/* Gold hover border */}
                 <div className="absolute inset-0 border border-gold/0 group-hover:border-gold/30 transition-colors duration-500" />
-              </div>
+              </motion.div>
             ))}
           </div>
-        </section>
+        </motion.section>
 
         {/* Wide Editorial Banner */}
-        <section className="relative">
+        <motion.section 
+          className="relative"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-100px" }}
+          variants={scaleIn}
+        >
           <EditorialImage aspect="21/9" className="w-full">
             <CornerAccent position="top-left" />
             <CornerAccent position="top-right" />
@@ -360,16 +508,28 @@ export default memo(function Index() {
             <div className="absolute inset-0 bg-background/30" />
           </EditorialImage>
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="text-center">
+            <motion.div 
+              className="text-center"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+            >
               <p className="text-[10px] uppercase tracking-[0.4em] text-muted-foreground mb-4">New Season</p>
               <h2 className="font-serif text-4xl md:text-5xl lg:text-6xl italic">Ramadan Edit</h2>
-            </div>
+            </motion.div>
           </div>
           <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-gold/40 to-transparent" />
-        </section>
+        </motion.section>
 
         {/* Lookbook Grid - Masonry Style */}
-        <section className="px-6 md:px-12 lg:px-20 py-24">
+        <motion.section 
+          className="px-6 md:px-12 lg:px-20 py-24"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-100px" }}
+          variants={fadeInUp}
+        >
           <div className="flex items-center justify-between mb-12">
             <h2 className="font-serif text-2xl md:text-3xl">The Lookbook</h2>
             <Link 
@@ -380,41 +540,57 @@ export default memo(function Index() {
             </Link>
           </div>
           
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-5">
+          <motion.div 
+            className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-5"
+            variants={staggerContainer}
+          >
             {/* Varied height cards for editorial feel */}
-            <div className="md:row-span-2 relative group">
+            <motion.div className="md:row-span-2 relative group" variants={staggerItem}>
               <EditorialImage aspect="2/3" className="w-full h-full" />
               <div className="absolute bottom-0 left-0 right-0 h-px bg-gold/0 group-hover:bg-gold/50 transition-colors duration-500" />
-            </div>
-            <div className="relative group">
+            </motion.div>
+            <motion.div className="relative group" variants={staggerItem}>
               <EditorialImage aspect="1/1" className="w-full" />
               <div className="absolute bottom-0 left-0 right-0 h-px bg-gold/0 group-hover:bg-gold/50 transition-colors duration-500" />
-            </div>
-            <div className="relative group">
+            </motion.div>
+            <motion.div className="relative group" variants={staggerItem}>
               <EditorialImage aspect="1/1" className="w-full" />
               <div className="absolute bottom-0 left-0 right-0 h-px bg-gold/0 group-hover:bg-gold/50 transition-colors duration-500" />
-            </div>
-            <div className="md:row-span-2 relative group">
+            </motion.div>
+            <motion.div className="md:row-span-2 relative group" variants={staggerItem}>
               <EditorialImage aspect="2/3" className="w-full h-full" />
               <div className="absolute bottom-0 left-0 right-0 h-px bg-gold/0 group-hover:bg-gold/50 transition-colors duration-500" />
-            </div>
-            <div className="relative group">
+            </motion.div>
+            <motion.div className="relative group" variants={staggerItem}>
               <EditorialImage aspect="1/1" className="w-full" />
               <div className="absolute bottom-0 left-0 right-0 h-px bg-gold/0 group-hover:bg-gold/50 transition-colors duration-500" />
-            </div>
-            <div className="relative group">
+            </motion.div>
+            <motion.div className="relative group" variants={staggerItem}>
               <EditorialImage aspect="1/1" className="w-full" />
               <div className="absolute bottom-0 left-0 right-0 h-px bg-gold/0 group-hover:bg-gold/50 transition-colors duration-500" />
-            </div>
-          </div>
-        </section>
+            </motion.div>
+          </motion.div>
+        </motion.section>
 
         {/* Egyptian Divider */}
         <EgyptianDivider />
 
         {/* Call to Action */}
-        <section className="px-6 md:px-12 lg:px-20 py-24 text-center relative">
-          <AnkhSymbol className="text-gold/40 mx-auto mb-8" />
+        <motion.section 
+          className="px-6 md:px-12 lg:px-20 py-24 text-center relative"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-100px" }}
+          variants={fadeInUp}
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+          >
+            <AnkhSymbol className="text-gold/40 mx-auto mb-8" />
+          </motion.div>
           <h2 className="font-serif text-3xl md:text-4xl mb-6">Begin Your Journey</h2>
           <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground mb-10 max-w-md mx-auto">
             Discover curated modest fashion crafted with intention
@@ -426,19 +602,30 @@ export default memo(function Index() {
             <span>Explore Collection</span>
             <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" strokeWidth={1} />
           </Link>
-        </section>
+        </motion.section>
 
         {/* Minimal Zara-Style Footer */}
-        <footer className="border-t border-border/30 mb-20">
+        <motion.footer 
+          className="border-t border-border/30 mb-20"
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+        >
           <div className="px-6 md:px-12 lg:px-20 py-8 flex flex-col md:flex-row items-center justify-between gap-4">
             <span className="text-[9px] uppercase tracking-[0.15em] text-muted-foreground">© 2024 Modesta</span>
             <AnkhSymbol className="text-gold/50" />
             <span className="text-[9px] uppercase tracking-[0.15em] text-muted-foreground">Cairo · Dubai · London</span>
           </div>
-        </footer>
+        </motion.footer>
 
         {/* Bottom Navigation Bar */}
-        <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-t border-border/30">
+        <motion.nav 
+          className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-t border-border/30"
+          initial={{ y: 100 }}
+          animate={{ y: 0 }}
+          transition={{ duration: 0.5, delay: 0.6 }}
+        >
           <div className="h-px bg-gradient-to-r from-transparent via-gold/20 to-transparent" />
           <div className="flex items-center justify-around py-3 px-4 max-w-lg mx-auto">
             {bottomNavItems.map((item, index) => (
@@ -457,7 +644,7 @@ export default memo(function Index() {
               </Link>
             ))}
           </div>
-        </nav>
+        </motion.nav>
       </div>
     </AppLayout>
   );

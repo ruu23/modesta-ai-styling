@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Shirt, Sparkles } from 'lucide-react';
+import { Shirt, Sparkles, Palette } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export default function Index() {
@@ -19,12 +19,20 @@ export default function Index() {
           </p>
         </div>
 
-        <Button asChild size="lg" className="gradient-rose text-primary-foreground border-0 hover:opacity-90">
-          <Link to="/closet">
-            <Sparkles className="w-5 h-5 mr-2" />
-            Explore Your Closet
-          </Link>
-        </Button>
+        <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          <Button asChild size="lg" className="gradient-rose text-primary-foreground border-0 hover:opacity-90">
+            <Link to="/closet">
+              <Sparkles className="w-5 h-5 mr-2" />
+              Explore Your Closet
+            </Link>
+          </Button>
+          <Button asChild size="lg" variant="outline">
+            <Link to="/outfit-builder">
+              <Palette className="w-5 h-5 mr-2" />
+              Build an Outfit
+            </Link>
+          </Button>
+        </div>
       </div>
     </div>
   );

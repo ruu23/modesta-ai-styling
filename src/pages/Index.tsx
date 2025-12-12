@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Shirt, Sparkles, Palette, MessageSquare, CalendarDays } from 'lucide-react';
+import { Shirt, Sparkles, Palette, MessageSquare, CalendarDays, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export default function Index() {
@@ -42,6 +42,12 @@ export default function Index() {
             <Link to="/calendar">
               <CalendarDays className="w-5 h-5 mr-2" />
               Calendar
+            </Link>
+          </Button>
+          <Button asChild size="lg" variant="outline">
+            <Link to="/settings">
+              <Settings className="w-5 h-5 mr-2" />
+              Settings
             </Link>
           </Button>
         </div>

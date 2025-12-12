@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Shirt, Sparkles, Palette, MessageSquare } from 'lucide-react';
+import { Shirt, Sparkles, Palette, MessageSquare, CalendarDays } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export default function Index() {
@@ -19,23 +19,29 @@ export default function Index() {
           </p>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-3 justify-center">
+        <div className="flex flex-wrap gap-3 justify-center max-w-lg mx-auto">
           <Button asChild size="lg" className="gradient-rose text-primary-foreground border-0 hover:opacity-90">
             <Link to="/closet">
               <Sparkles className="w-5 h-5 mr-2" />
-              Explore Your Closet
+              Explore Closet
             </Link>
           </Button>
           <Button asChild size="lg" variant="outline">
             <Link to="/outfit-builder">
               <Palette className="w-5 h-5 mr-2" />
-              Build an Outfit
+              Build Outfit
             </Link>
           </Button>
           <Button asChild size="lg" variant="outline">
             <Link to="/chat">
               <MessageSquare className="w-5 h-5 mr-2" />
               AI Stylist
+            </Link>
+          </Button>
+          <Button asChild size="lg" variant="outline">
+            <Link to="/calendar">
+              <CalendarDays className="w-5 h-5 mr-2" />
+              Calendar
             </Link>
           </Button>
         </div>

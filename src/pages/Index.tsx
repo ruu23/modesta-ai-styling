@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Shirt, Sparkles, Palette } from 'lucide-react';
+import { Shirt, Sparkles, Palette, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export default function Index() {
@@ -30,6 +30,12 @@ export default function Index() {
             <Link to="/outfit-builder">
               <Palette className="w-5 h-5 mr-2" />
               Build an Outfit
+            </Link>
+          </Button>
+          <Button asChild size="lg" variant="outline">
+            <Link to="/chat">
+              <MessageSquare className="w-5 h-5 mr-2" />
+              AI Stylist
             </Link>
           </Button>
         </div>

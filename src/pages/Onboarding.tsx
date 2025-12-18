@@ -487,22 +487,24 @@ export default function Onboarding() {
       </div>
     </motion.div>
   );
-
-  const steps = [
-    <LoginPage key="login" />,
-    <LandingPage key="landing" />,
-    <BasicInfoStep key="basic" />,
-    <CountryStep key="country" />,
-    <CityStep key="city" />,
-    <BrandsStep key="brands" />,
-    <HijabStyleStep key="hijab" />,
-    <ColorsStyleStep key="colors" />,
-    <CompletionPage key="complete" />
-  ];
+  const renderStep = () => {
+    switch (currentStep) {
+      case 0: return <LoginPage key="login" />;
+      case 1: return <LandingPage key="landing" />;
+      case 2: return <BasicInfoStep key="basic" />;
+      case 3: return <CountryStep key="country" />;
+      case 4: return <CityStep key="city" />;
+      case 5: return <BrandsStep key="brands" />;
+      case 6: return <HijabStyleStep key="hijab" />;
+      case 7: return <ColorsStyleStep key="colors" />;
+      case 8: return <CompletionPage key="complete" />;
+      default: return <LoginPage key="login" />;
+    }
+  };
 
   return (
     <AnimatePresence mode="wait">
-      {steps[currentStep]}
+      {renderStep()}
     </AnimatePresence>
   );
 }

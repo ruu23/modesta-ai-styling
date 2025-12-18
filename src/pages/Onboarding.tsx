@@ -93,6 +93,10 @@ export default function Onboarding() {
 
   const nextStep = () => {
     if (currentStep < 7) setCurrentStep(currentStep + 1);
+    // Save to localStorage when reaching completion step
+    if (currentStep === 6) {
+      localStorage.setItem('modesta-user', JSON.stringify(userData));
+    }
   };
 
   const prevStep = () => {

@@ -2,8 +2,19 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, Sparkles, Scan, CalendarDays, ShoppingBag, Home, Shirt, Calendar, Users, User } from 'lucide-react';
 import { ThemeToggle } from '@/components/theme';
 import { AppLayout } from '@/components/layout';
-import { memo } from 'react';
+import { memo, useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+
+interface UserData {
+  fullName: string;
+  email: string;
+  country: string;
+  city: string;
+  brands: string[];
+  favoriteColors: string[];
+  stylePersonality: string[];
+  hijabStyle: string;
+}
 
 const navItems = [
   { to: '/closet', label: 'Collection' },
@@ -170,6 +181,19 @@ const EditorialImage = ({
 );
 
 export default memo(function Index() {
+  const [userData, setUserData] = useState<UserData | null>(null);
+
+  useEffect(() => {
+    const stored = localStorage.getItem('modesta-user');
+    if (stored) {
+      try {
+        setUserData(JSON.parse(stored));
+      } catch (e) {
+        console.error('Failed to parse user data');
+      }
+    }
+  }, []);
+
   return (
     <AppLayout showBottomNav={false}>
       <div className="min-h-screen bg-background pb-24">
@@ -200,17 +224,45 @@ export default memo(function Index() {
               ))}
             </nav>
             <div className="flex items-center gap-4">
-              <Link 
-                to="/onboarding"
-                className="text-[10px] uppercase tracking-[0.15em] px-4 py-2 border border-foreground hover:bg-foreground hover:text-background transition-colors duration-300"
-              >
-                Get Started
-              </Link>
+              {userData ? (
+                <Link 
+                  to="/settings"
+                  className="text-[10px] uppercase tracking-[0.15em] text-foreground hover:text-gold transition-colors duration-300"
+                >
+                  Hi, {userData.fullName.split(' ')[0]}
+                </Link>
+              ) : (
+                <Link 
+                  to="/onboarding"
+                  className="text-[10px] uppercase tracking-[0.15em] px-4 py-2 border border-foreground hover:bg-foreground hover:text-background transition-colors duration-300"
+                >
+                  Get Started
+                </Link>
+              )}
               <ThemeToggle />
             </div>
           </div>
           <div className="h-px bg-border/30" />
         </motion.header>
+
+        {/* Personalized Welcome Message */}
+        {userData && (
+          <motion.section 
+            className="px-6 md:px-12 lg:px-20 pt-8"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+          >
+            <div className="text-center md:text-left">
+              <h1 className="font-serif text-2xl md:text-3xl mb-2">
+                Welcome back, <span className="text-gold">{userData.fullName.split(' ')[0]}</span>
+              </h1>
+              <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
+                {userData.city}, {userData.country} • {userData.hijabStyle} Style
+              </p>
+            </div>
+          </motion.section>
+        )}
 
         {/* Today's Suggested Look Card */}
         <motion.section 

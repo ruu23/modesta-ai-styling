@@ -15,6 +15,7 @@ import {
   LazySettings 
 } from "@/lib/lazyComponents";
 import Index from "./pages/Index";
+import Onboarding from "./pages/Onboarding";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -35,6 +36,7 @@ function AnimatedRoutes() {
     <AnimatePresence mode="wait" initial={false}>
       <Routes location={location} key={location.pathname}>
         <Route path="/" element={<Index />} />
+        <Route path="/onboarding" element={<Onboarding />} />
         <Route 
           path="/closet" 
           element={

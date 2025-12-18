@@ -33,14 +33,33 @@ interface StepProps {
 
 // Constants
 const countries = [
-  'United Arab Emirates', 'Saudi Arabia', 'Egypt', 'Kuwait', 'Qatar',
-  'Bahrain', 'Oman', 'Jordan', 'Lebanon', 'Morocco', 'Tunisia', 'Algeria'
-];
+  // Middle East & North Africa
+  'United Arab Emirates', 'Saudi Arabia', 'Egypt', 'Kuwait', 'Qatar', 'Bahrain', 'Oman', 'Jordan', 'Lebanon', 'Morocco', 'Tunisia', 'Algeria', 'Libya', 'Iraq', 'Syria', 'Palestine', 'Yemen',
+  // Europe
+  'United Kingdom', 'France', 'Germany', 'Netherlands', 'Belgium', 'Sweden', 'Norway', 'Denmark', 'Spain', 'Italy', 'Switzerland', 'Austria', 'Turkey', 'Greece', 'Poland', 'Portugal', 'Ireland', 'Finland',
+  // Asia
+  'Indonesia', 'Malaysia', 'Pakistan', 'Bangladesh', 'India', 'Singapore', 'Brunei', 'Philippines', 'Thailand', 'Japan', 'South Korea', 'China', 'Vietnam',
+  // Americas
+  'United States', 'Canada', 'Brazil', 'Mexico', 'Argentina', 'Colombia', 'Chile',
+  // Africa
+  'Nigeria', 'South Africa', 'Kenya', 'Ghana', 'Senegal', 'Tanzania', 'Ethiopia', 'Sudan',
+  // Oceania
+  'Australia', 'New Zealand'
+].sort();
 
 const brands = [
-  'Zara', 'H&M', 'Mango', 'Shein', 'Modanisa', 'The Modist',
-  'Haute Hijab', 'Inayah', 'Niswa Fashion', 'Aab', 'Annah Hariri',
-  'Dolce & Gabbana', 'Dior', 'Chanel', 'Local Boutiques', 'Other'
+  // Fast Fashion
+  'Zara', 'H&M', 'Mango', 'Shein', 'Uniqlo', 'Pull&Bear', 'Bershka', 'Stradivarius', 'Forever 21', 'Primark', 'ASOS', 'Boohoo', 'PrettyLittleThing', 'Missguided',
+  // Modest Fashion
+  'Modanisa', 'The Modist', 'Haute Hijab', 'Inayah', 'Niswa Fashion', 'Aab', 'Annah Hariri', 'Verona Collection', 'Hijab House', 'SHUKR', 'Artizara', 'Louella',
+  // Luxury
+  'Dolce & Gabbana', 'Dior', 'Chanel', 'Gucci', 'Louis Vuitton', 'Prada', 'Valentino', 'Versace', 'Balenciaga', 'Fendi', 'Burberry', 'Saint Laurent', 'Bottega Veneta',
+  // Contemporary
+  'COS', 'Massimo Dutti', 'Arket', '& Other Stories', 'Reiss', 'Ted Baker', 'Karen Millen', 'AllSaints', 'Sandro', 'Maje',
+  // Sportswear
+  'Nike', 'Adidas', 'Puma', 'Lululemon', 'Alo Yoga', 'Gymshark',
+  // Other
+  'Local Boutiques', 'Thrift/Vintage', 'Handmade/Custom', 'Other'
 ];
 
 const colors = [

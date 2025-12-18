@@ -1,9 +1,10 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight, Sparkles, Scan, CalendarDays, ShoppingBag, Home, Shirt, Calendar, Users, User } from 'lucide-react';
+import { ArrowRight, Sparkles, Scan, CalendarDays, ShoppingBag, Home, Shirt, Calendar, Users, User, CloudSun } from 'lucide-react';
 import { ThemeToggle } from '@/components/theme';
 import { AppLayout } from '@/components/layout';
 import { memo, useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useWeather } from '@/hooks/useWeather';
 
 interface UserData {
   fullName: string;
@@ -180,6 +181,32 @@ const EditorialImage = ({
   </div>
 );
 
+// Weather Widget Component
+const WeatherWidget = () => {
+  const { weather, loading } = useWeather();
+  
+  if (loading) {
+    return (
+      <div className="flex items-center gap-3 px-4 py-3 border border-border/40 bg-muted/20">
+        <CloudSun className="w-5 h-5 text-muted-foreground animate-pulse" />
+        <span className="text-xs tracking-wider text-muted-foreground">Loading...</span>
+      </div>
+    );
+  }
+  
+  if (!weather) return null;
+  
+  return (
+    <div className="flex items-center gap-3 px-5 py-3 border border-border/40 bg-muted/20">
+      <span className="text-2xl">{weather.icon}</span>
+      <div>
+        <p className="font-serif text-xl">{weather.temperature}°C</p>
+        <p className="text-[9px] uppercase tracking-[0.2em] text-muted-foreground">{weather.condition}</p>
+      </div>
+    </div>
+  );
+};
+
 export default memo(function Index() {
   const [userData, setUserData] = useState<UserData | null>(null);
 
@@ -245,7 +272,7 @@ export default memo(function Index() {
           <div className="h-px bg-border/30" />
         </motion.header>
 
-        {/* Personalized Welcome Message */}
+        {/* Personalized Welcome Message with Weather */}
         {userData && (
           <motion.section 
             className="px-6 md:px-12 lg:px-20 pt-8"
@@ -253,13 +280,30 @@ export default memo(function Index() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
           >
-            <div className="text-center md:text-left">
-              <h1 className="font-serif text-2xl md:text-3xl mb-2">
-                Welcome back, <span className="text-gold">{userData.fullName.split(' ')[0]}</span>
-              </h1>
-              <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
-                {userData.city}, {userData.country} • {userData.hijabStyle} Style
-              </p>
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div className="text-center md:text-left">
+                <h1 className="font-serif text-2xl md:text-3xl mb-2">
+                  Welcome back, <span className="text-gold">{userData.fullName.split(' ')[0]}</span>
+                </h1>
+                <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
+                  {userData.city}, {userData.country} • {userData.hijabStyle} Style
+                </p>
+              </div>
+              <WeatherWidget />
+            </div>
+          </motion.section>
+        )}
+
+        {/* Weather for non-logged in users */}
+        {!userData && (
+          <motion.section 
+            className="px-6 md:px-12 lg:px-20 pt-8"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+          >
+            <div className="flex justify-end">
+              <WeatherWidget />
             </div>
           </motion.section>
         )}

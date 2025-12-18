@@ -199,7 +199,15 @@ export default memo(function Index() {
                 </motion.div>
               ))}
             </nav>
-            <ThemeToggle />
+            <div className="flex items-center gap-4">
+              <Link 
+                to="/onboarding"
+                className="text-[10px] uppercase tracking-[0.15em] px-4 py-2 border border-foreground hover:bg-foreground hover:text-background transition-colors duration-300"
+              >
+                Get Started
+              </Link>
+              <ThemeToggle />
+            </div>
           </div>
           <div className="h-px bg-border/30" />
         </motion.header>

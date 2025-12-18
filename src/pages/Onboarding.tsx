@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check, ChevronRight, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -25,6 +26,7 @@ interface UserData {
 }
 
 export default function Onboarding() {
+  const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(0);
   const [userData, setUserData] = useState<UserData>({
     fullName: '',
@@ -475,10 +477,10 @@ export default function Onboarding() {
         <div className="w-16 h-px bg-gold mx-auto mb-8" />
         
         <div className="space-y-4">
-          <Button className="w-full h-14" onClick={() => window.location.href = '/'}>
+          <Button className="w-full h-14" onClick={() => navigate('/home')}>
             Go to Dashboard
           </Button>
-          <Button variant="outline" className="w-full h-14" onClick={() => window.location.href = '/closet'}>
+          <Button variant="outline" className="w-full h-14" onClick={() => navigate('/closet')}>
             Add Items to Closet
           </Button>
         </div>

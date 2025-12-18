@@ -35,7 +35,7 @@ const partnerBrands = [
 ];
 
 const bottomNavItems = [
-  { icon: Home, label: 'Home', to: '/' },
+  { icon: Home, label: 'Home', to: '/home' },
   { icon: Shirt, label: 'Closet', to: '/closet' },
   { icon: Calendar, label: 'Calendar', to: '/calendar' },
   { icon: Users, label: 'Friends', to: '/chat' },
@@ -233,7 +233,7 @@ export default memo(function Index() {
                 </Link>
               ) : (
                 <Link 
-                  to="/onboarding"
+                  to="/"
                   className="text-[10px] uppercase tracking-[0.15em] px-4 py-2 border border-foreground hover:bg-foreground hover:text-background transition-colors duration-300"
                 >
                   Get Started

@@ -13,6 +13,8 @@ const fadeInUp = {
 export interface UserData {
   fullName: string;
   email: string;
+  password: string;
+  confirmPassword: string;
   country: string;
   city: string;
   brands: string[];
@@ -198,13 +200,58 @@ export const BasicInfoStep = ({ userData, updateUserData, nextStep }: Pick<StepP
             placeholder="your@email.com"
           />
         </div>
-        <Button 
-          onClick={nextStep} 
-          disabled={!userData.fullName || !userData.email}
+        <div>
+          <label className="block text-sm tracking-wider mb-2 text-muted-foreground">
+            Password
+          </label>
+          <Input
+            type="password"
+            value={userData.password}
+            onChange={(e) => updateUserData('password', e.target.value)}
+            className="h-14 border-border/50 focus:border-foreground"
+            placeholder="Create a password"
+          />
+          <p className="text-xs text-muted-foreground mt-2">
+            Password must be at least 6 characters
+          </p>
+        </div>
+        <div>
+          <label className="block text-sm tracking-wider mb-2 text-muted-foreground">
+            Confirm Password
+          </label>
+          <Input
+            type="password"
+            value={userData.confirmPassword}
+            onChange={(e) => updateUserData('confirmPassword', e.target.value)}
+            className="h-14 border-border/50 focus:border-foreground"
+            placeholder="Re-enter your password"
+          />
+          {userData.confirmPassword &&
+            userData.password !== userData.confirmPassword && (
+              <motion.p
+                initial={{ opacity: 0, y: -5 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                className="text-sm text-red-500 mt-2"
+              >
+                Passwords do not match
+              </motion.p>
+            )}
+        </div>
+
+        <Button
+          onClick={nextStep}
+          disabled={
+            !userData.fullName ||
+            !userData.email ||
+            userData.password.length < 6 ||
+            userData.password !== userData.confirmPassword
+          }
           className="w-full h-14 mt-8"
         >
           Continue
         </Button>
+
       </div>
     </div>
   </motion.div>

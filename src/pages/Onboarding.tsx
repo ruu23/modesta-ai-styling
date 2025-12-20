@@ -20,6 +20,8 @@ export default function Onboarding() {
   const [userData, setUserData] = useState<UserData>({
     fullName: '',
     email: '',
+    password: '',
+    confirmPassword: '',
     country: '',
     city: '',
     brands: [],

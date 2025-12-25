@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Check, ChevronRight, MapPin } from 'lucide-react';
+import { Check, ChevronRight, MapPin, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
@@ -31,6 +31,12 @@ interface StepProps {
   toggleArrayItem: (field: keyof UserData, item: string) => void;
   nextStep: () => void;
   prevStep: () => void;
+}
+
+interface BasicInfoStepProps extends Pick<StepProps, 'userData' | 'updateUserData' | 'nextStep'> {
+  isLoading?: boolean;
+  authMode?: 'signup' | 'signin';
+  setAuthMode?: (mode: 'signup' | 'signin') => void;
 }
 
 // Constants
@@ -170,92 +176,131 @@ export const LandingPage = ({ nextStep }: Pick<StepProps, 'nextStep'>) => (
   </motion.div>
 );
 
-// Basic Info Step
-export const BasicInfoStep = ({ userData, updateUserData, nextStep }: Pick<StepProps, 'userData' | 'updateUserData' | 'nextStep'>) => (
-  <motion.div {...fadeInUp} className="min-h-screen bg-background px-6 py-12">
-    <div className="max-w-md mx-auto">
-      <div className="text-center mb-12">
-        <h2 className="font-serif text-3xl mb-3">Welcome!</h2>
-        <p className="text-muted-foreground">Let's get to know you better</p>
-        <div className="w-8 h-px bg-gold mx-auto mt-6" />
-      </div>
-      <div className="space-y-6">
-        <div>
-          <label className="block text-sm tracking-wider mb-2 text-muted-foreground">Full Name</label>
-          <Input
-            type="text"
-            value={userData.fullName}
-            onChange={(e) => updateUserData('fullName', e.target.value)}
-            className="h-14 border-border/50 focus:border-foreground"
-            placeholder="Enter your name"
-          />
-        </div>
-        <div>
-          <label className="block text-sm tracking-wider mb-2 text-muted-foreground">Email</label>
-          <Input
-            type="email"
-            value={userData.email}
-            onChange={(e) => updateUserData('email', e.target.value)}
-            className="h-14 border-border/50 focus:border-foreground"
-            placeholder="your@email.com"
-          />
-        </div>
-        <div>
-          <label className="block text-sm tracking-wider mb-2 text-muted-foreground">
-            Password
-          </label>
-          <Input
-            type="password"
-            value={userData.password}
-            onChange={(e) => updateUserData('password', e.target.value)}
-            className="h-14 border-border/50 focus:border-foreground"
-            placeholder="Create a password"
-          />
-          <p className="text-xs text-muted-foreground mt-2">
-            Password must be at least 6 characters
+// Basic Info Step - Now with auth
+export const BasicInfoStep = ({ 
+  userData, 
+  updateUserData, 
+  nextStep,
+  isLoading = false,
+  authMode = 'signup',
+  setAuthMode
+}: BasicInfoStepProps) => {
+  const isSignUp = authMode === 'signup';
+  
+  return (
+    <motion.div {...fadeInUp} className="min-h-screen bg-background px-6 py-12">
+      <div className="max-w-md mx-auto">
+        <div className="text-center mb-12">
+          <h2 className="font-serif text-3xl mb-3">
+            {isSignUp ? 'Create Account' : 'Welcome Back'}
+          </h2>
+          <p className="text-muted-foreground">
+            {isSignUp ? "Let's get to know you better" : 'Sign in to continue'}
           </p>
+          <div className="w-8 h-px bg-gold mx-auto mt-6" />
         </div>
-        <div>
-          <label className="block text-sm tracking-wider mb-2 text-muted-foreground">
-            Confirm Password
-          </label>
-          <Input
-            type="password"
-            value={userData.confirmPassword}
-            onChange={(e) => updateUserData('confirmPassword', e.target.value)}
-            className="h-14 border-border/50 focus:border-foreground"
-            placeholder="Re-enter your password"
-          />
-          {userData.confirmPassword &&
-            userData.password !== userData.confirmPassword && (
-              <motion.p
-                initial={{ opacity: 0, y: -5 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0 }}
-                className="text-sm text-red-500 mt-2"
-              >
-                Passwords do not match
-              </motion.p>
+        <div className="space-y-6">
+          {isSignUp && (
+            <div>
+              <label className="block text-sm tracking-wider mb-2 text-muted-foreground">Full Name</label>
+              <Input
+                type="text"
+                value={userData.fullName}
+                onChange={(e) => updateUserData('fullName', e.target.value)}
+                className="h-14 border-border/50 focus:border-foreground"
+                placeholder="Enter your name"
+              />
+            </div>
+          )}
+          <div>
+            <label className="block text-sm tracking-wider mb-2 text-muted-foreground">Email</label>
+            <Input
+              type="email"
+              value={userData.email}
+              onChange={(e) => updateUserData('email', e.target.value)}
+              className="h-14 border-border/50 focus:border-foreground"
+              placeholder="your@email.com"
+            />
+          </div>
+          <div>
+            <label className="block text-sm tracking-wider mb-2 text-muted-foreground">
+              Password
+            </label>
+            <Input
+              type="password"
+              value={userData.password}
+              onChange={(e) => updateUserData('password', e.target.value)}
+              className="h-14 border-border/50 focus:border-foreground"
+              placeholder={isSignUp ? "Create a password" : "Enter your password"}
+            />
+            {isSignUp && (
+              <p className="text-xs text-muted-foreground mt-2">
+                Password must be at least 6 characters
+              </p>
             )}
+          </div>
+          {isSignUp && (
+            <div>
+              <label className="block text-sm tracking-wider mb-2 text-muted-foreground">
+                Confirm Password
+              </label>
+              <Input
+                type="password"
+                value={userData.confirmPassword}
+                onChange={(e) => updateUserData('confirmPassword', e.target.value)}
+                className="h-14 border-border/50 focus:border-foreground"
+                placeholder="Re-enter your password"
+              />
+              {userData.confirmPassword &&
+                userData.password !== userData.confirmPassword && (
+                  <motion.p
+                    initial={{ opacity: 0, y: -5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0 }}
+                    className="text-sm text-red-500 mt-2"
+                  >
+                    Passwords do not match
+                  </motion.p>
+                )}
+            </div>
+          )}
+
+          <Button
+            onClick={nextStep}
+            disabled={
+              isLoading ||
+              !userData.email ||
+              (isSignUp && (!userData.fullName || userData.password.length < 6 || userData.password !== userData.confirmPassword)) ||
+              (!isSignUp && !userData.password)
+            }
+            className="w-full h-14 mt-8"
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                {isSignUp ? 'Creating account...' : 'Signing in...'}
+              </>
+            ) : (
+              isSignUp ? 'Create Account' : 'Sign In'
+            )}
+          </Button>
+
+          {setAuthMode && (
+            <p className="text-center text-sm text-muted-foreground mt-4">
+              {isSignUp ? 'Already have an account?' : "Don't have an account?"}{' '}
+              <button
+                onClick={() => setAuthMode(isSignUp ? 'signin' : 'signup')}
+                className="text-foreground underline hover:no-underline"
+              >
+                {isSignUp ? 'Sign in' : 'Sign up'}
+              </button>
+            </p>
+          )}
         </div>
-
-        <Button
-          onClick={nextStep}
-          disabled={
-            !userData.fullName ||
-            !userData.email ||
-            userData.password.length < 6 ||
-            userData.password !== userData.confirmPassword
-          }
-          className="w-full h-14 mt-8"
-        >
-          Continue
-        </Button>
-
       </div>
-    </div>
-  </motion.div>
-);
+    </motion.div>
+  );
+};
 
 // Country Step
 export const CountryStep = ({ updateUserData, nextStep, prevStep }: Pick<StepProps, 'updateUserData' | 'nextStep' | 'prevStep'>) => (

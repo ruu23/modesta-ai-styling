@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import { ThemeProvider } from "@/components/theme";
 import { AccessibilityProvider } from "@/components/accessibility";
+import { AuthProvider } from "@/hooks/useAuth";
 import { LazyPage } from "@/components/ui/LazyLoad";
 import { 
   LazyCloset, 
@@ -87,13 +88,15 @@ const App = () => (
   <AccessibilityProvider>
     <ThemeProvider defaultTheme="system" storageKey="modesta-theme">
       <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <AnimatedRoutes />
-          </BrowserRouter>
-        </TooltipProvider>
+        <AuthProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <AnimatedRoutes />
+            </BrowserRouter>
+          </TooltipProvider>
+        </AuthProvider>
       </QueryClientProvider>
     </ThemeProvider>
   </AccessibilityProvider>

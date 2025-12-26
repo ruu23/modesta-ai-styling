@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { X, Upload, Camera, Link } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { X, Upload, Camera, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -16,8 +16,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useStorage } from '@/hooks/useStorage';
 import { 
   Category, 
   Occasion, 
@@ -47,7 +47,11 @@ interface AddItemModalProps {
 }
 
 export function AddItemModal({ isOpen, onClose, onAdd }: AddItemModalProps) {
+  const { uploadImage, isUploading } = useStorage();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
   const [name, setName] = useState('');
+  const [images, setImages] = useState<string[]>([]);
   const [imageUrl, setImageUrl] = useState('');
   const [category, setCategory] = useState<Category | ''>('');
   const [colors, setColors] = useState<string[]>([]);
@@ -58,6 +62,33 @@ export function AddItemModal({ isOpen, onClose, onAdd }: AddItemModalProps) {
   const [seasons, setSeasons] = useState<Season[]>([]);
   const [pattern, setPattern] = useState('');
   const [purchaseDate, setPurchaseDate] = useState('');
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    const file = files[0];
+    const url = await uploadImage(file);
+    if (url) {
+      setImages(prev => [...prev, url]);
+    }
+    
+    // Reset input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleAddUrlImage = () => {
+    if (imageUrl.trim()) {
+      setImages(prev => [...prev, imageUrl.trim()]);
+      setImageUrl('');
+    }
+  };
+
+  const removeImage = (index: number) => {
+    setImages(prev => prev.filter((_, i) => i !== index));
+  };
 
   const toggleColor = (color: string) => {
     setColors(prev => 
@@ -78,11 +109,11 @@ export function AddItemModal({ isOpen, onClose, onAdd }: AddItemModalProps) {
   };
 
   const handleSubmit = () => {
-    if (!name || !category || !imageUrl) return;
+    if (!name || !category || images.length === 0) return;
 
     onAdd({
       name,
-      images: [imageUrl],
+      images,
       category: category as Category,
       colors,
       brand,
@@ -96,6 +127,7 @@ export function AddItemModal({ isOpen, onClose, onAdd }: AddItemModalProps) {
 
     // Reset form
     setName('');
+    setImages([]);
     setImageUrl('');
     setCategory('');
     setColors([]);
@@ -120,33 +152,91 @@ export function AddItemModal({ isOpen, onClose, onAdd }: AddItemModalProps) {
           <div className="space-y-6 pt-4">
             {/* Image Upload Area */}
             <div>
-              <Label className="text-foreground">Image</Label>
-              <div className="mt-2 border-2 border-dashed border-border rounded-xl p-6 text-center hover:border-primary transition-colors">
+              <Label className="text-foreground">Images *</Label>
+              
+              {/* Uploaded Images Preview */}
+              {images.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-2 mb-3">
+                  {images.map((img, index) => (
+                    <div key={index} className="relative group w-20 h-20 rounded-lg overflow-hidden border border-border">
+                      <img src={img} alt={`Preview ${index + 1}`} className="w-full h-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => removeImage(index)}
+                        className="absolute top-1 right-1 p-1 bg-background/80 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X className="w-3 h-3 text-foreground" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Upload Buttons */}
+              <div className="border-2 border-dashed border-border rounded-xl p-6 text-center hover:border-primary transition-colors">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/gif"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                />
                 <div className="flex flex-col items-center gap-2">
                   <div className="flex gap-2">
-                    <Button variant="outline" size="sm" type="button">
-                      <Upload className="w-4 h-4 mr-2" />
-                      Upload
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={isUploading}
+                    >
+                      {isUploading ? (
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      ) : (
+                        <Upload className="w-4 h-4 mr-2" />
+                      )}
+                      {isUploading ? 'Uploading...' : 'Upload'}
                     </Button>
-                    <Button variant="outline" size="sm" type="button">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      type="button"
+                      onClick={() => {
+                        // Trigger file input for mobile camera
+                        if (fileInputRef.current) {
+                          fileInputRef.current.setAttribute('capture', 'environment');
+                          fileInputRef.current.click();
+                          fileInputRef.current.removeAttribute('capture');
+                        }
+                      }}
+                      disabled={isUploading}
+                    >
                       <Camera className="w-4 h-4 mr-2" />
                       Camera
                     </Button>
                   </div>
-                  <p className="text-xs text-muted-foreground">or paste an image URL below</p>
+                  <p className="text-xs text-muted-foreground">JPEG, PNG, WebP, or GIF (max 5MB)</p>
                 </div>
               </div>
-              <Input
-                placeholder="https://example.com/image.jpg"
-                value={imageUrl}
-                onChange={(e) => setImageUrl(e.target.value)}
-                className="mt-2"
-              />
-              {imageUrl && (
-                <div className="mt-2 rounded-lg overflow-hidden w-20 h-20">
-                  <img src={imageUrl} alt="Preview" className="w-full h-full object-cover" />
-                </div>
-              )}
+
+              {/* URL Input */}
+              <div className="flex gap-2 mt-2">
+                <Input
+                  placeholder="Or paste an image URL"
+                  value={imageUrl}
+                  onChange={(e) => setImageUrl(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleAddUrlImage()}
+                />
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  type="button"
+                  onClick={handleAddUrlImage}
+                  disabled={!imageUrl.trim()}
+                >
+                  Add
+                </Button>
+              </div>
             </div>
 
             {/* Name */}
@@ -310,7 +400,7 @@ export function AddItemModal({ isOpen, onClose, onAdd }: AddItemModalProps) {
           <Button 
             className="flex-1 gradient-rose text-primary-foreground border-0"
             onClick={handleSubmit}
-            disabled={!name || !category || !imageUrl}
+            disabled={!name || !category || images.length === 0 || isUploading}
           >
             Add Item
           </Button>

@@ -1,10 +1,11 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { ClosetItem, ClosetFilters, SortOption, Category } from '@/types/closet';
-import { mockClosetItems } from '@/data/mockClosetItems';
-
-const STORAGE_KEY = 'fashion-closet-items';
+import { supabase } from '@/integrations/supabase';
+import { useAuth } from './useAuth';
+import { toast } from 'sonner';
 
 export function useCloset() {
+  const { user } = useAuth();
   const [items, setItems] = useState<ClosetItem[]>([]);
   const [filters, setFilters] = useState<ClosetFilters>({
     categories: [],
@@ -18,31 +19,60 @@ export function useCloset() {
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Load items from localStorage on mount
-  useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      setItems(JSON.parse(stored));
-    } else {
-      // Initialize with mock data
-      setItems(mockClosetItems);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(mockClosetItems));
+  // Fetch items from Supabase
+  const fetchItems = useCallback(async () => {
+    if (!user) {
+      setItems([]);
+      setIsLoading(false);
+      return;
     }
-    setIsLoading(false);
-  }, []);
 
-  // Save items to localStorage whenever they change
-  useEffect(() => {
-    if (!isLoading && items.length > 0) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+    try {
+      const { data, error } = await supabase
+        .from('closet_items')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      // Transform from DB format to app format
+      const transformedItems: ClosetItem[] = (data || []).map(item => ({
+        id: item.id,
+        name: item.name,
+        images: item.images || [],
+        category: item.category as Category,
+        colors: item.colors || [],
+        brand: item.brand || '',
+        size: item.size || '',
+        price: Number(item.price) || 0,
+        occasions: item.occasions || [],
+        seasons: item.seasons || [],
+        pattern: item.pattern || '',
+        wornCount: item.worn_count || 0,
+        lastWorn: item.last_worn,
+        purchaseDate: item.purchase_date || '',
+        createdAt: item.created_at,
+      }));
+
+      setItems(transformedItems);
+    } catch (error) {
+      console.error('Error fetching closet items:', error);
+      toast.error('Failed to load closet items');
+    } finally {
+      setIsLoading(false);
     }
-  }, [items, isLoading]);
+  }, [user]);
+
+  // Load items on mount and when user changes
+  useEffect(() => {
+    fetchItems();
+  }, [fetchItems]);
 
   // Filter and sort items
   const filteredItems = useMemo(() => {
     let result = [...items];
 
-    // Apply filters
     if (filters.categories.length > 0) {
       result = result.filter(item => filters.categories.includes(item.category));
     }
@@ -73,7 +103,6 @@ export function useCloset() {
       );
     }
 
-    // Apply sorting
     switch (sortBy) {
       case 'recent':
         result.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
@@ -148,32 +177,140 @@ export function useCloset() {
       .slice(0, 6);
   };
 
-  // Actions
-  const addItem = (item: Omit<ClosetItem, 'id' | 'createdAt' | 'wornCount' | 'lastWorn'>) => {
-    const newItem: ClosetItem = {
-      ...item,
-      id: crypto.randomUUID(),
-      createdAt: new Date().toISOString(),
-      wornCount: 0,
-      lastWorn: null,
-    };
-    setItems(prev => [newItem, ...prev]);
+  // Add item
+  const addItem = async (item: Omit<ClosetItem, 'id' | 'createdAt' | 'wornCount' | 'lastWorn'>) => {
+    if (!user) {
+      toast.error('Please sign in to add items');
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('closet_items')
+        .insert({
+          user_id: user.id,
+          name: item.name,
+          images: item.images,
+          category: item.category,
+          colors: item.colors,
+          brand: item.brand,
+          size: item.size,
+          price: item.price,
+          occasions: item.occasions,
+          seasons: item.seasons,
+          pattern: item.pattern,
+          purchase_date: item.purchaseDate || null,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      const newItem: ClosetItem = {
+        id: data.id,
+        name: data.name,
+        images: data.images || [],
+        category: data.category as Category,
+        colors: data.colors || [],
+        brand: data.brand || '',
+        size: data.size || '',
+        price: Number(data.price) || 0,
+        occasions: data.occasions || [],
+        seasons: data.seasons || [],
+        pattern: data.pattern || '',
+        wornCount: data.worn_count || 0,
+        lastWorn: data.last_worn,
+        purchaseDate: data.purchase_date || '',
+        createdAt: data.created_at,
+      };
+
+      setItems(prev => [newItem, ...prev]);
+      toast.success('Item added to closet');
+    } catch (error) {
+      console.error('Error adding item:', error);
+      toast.error('Failed to add item');
+    }
   };
 
-  const updateItem = (id: string, updates: Partial<ClosetItem>) => {
-    setItems(prev => prev.map(item => 
-      item.id === id ? { ...item, ...updates } : item
-    ));
+  // Update item
+  const updateItem = async (id: string, updates: Partial<ClosetItem>) => {
+    if (!user) return;
+
+    try {
+      const dbUpdates: Record<string, unknown> = {};
+      if (updates.name !== undefined) dbUpdates.name = updates.name;
+      if (updates.images !== undefined) dbUpdates.images = updates.images;
+      if (updates.category !== undefined) dbUpdates.category = updates.category;
+      if (updates.colors !== undefined) dbUpdates.colors = updates.colors;
+      if (updates.brand !== undefined) dbUpdates.brand = updates.brand;
+      if (updates.size !== undefined) dbUpdates.size = updates.size;
+      if (updates.price !== undefined) dbUpdates.price = updates.price;
+      if (updates.occasions !== undefined) dbUpdates.occasions = updates.occasions;
+      if (updates.seasons !== undefined) dbUpdates.seasons = updates.seasons;
+      if (updates.pattern !== undefined) dbUpdates.pattern = updates.pattern;
+      if (updates.wornCount !== undefined) dbUpdates.worn_count = updates.wornCount;
+      if (updates.lastWorn !== undefined) dbUpdates.last_worn = updates.lastWorn;
+      if (updates.purchaseDate !== undefined) dbUpdates.purchase_date = updates.purchaseDate;
+
+      const { error } = await supabase
+        .from('closet_items')
+        .update(dbUpdates)
+        .eq('id', id)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      setItems(prev => prev.map(item => 
+        item.id === id ? { ...item, ...updates } : item
+      ));
+    } catch (error) {
+      console.error('Error updating item:', error);
+      toast.error('Failed to update item');
+    }
   };
 
-  const deleteItem = (id: string) => {
-    setItems(prev => prev.filter(item => item.id !== id));
-    setSelectedItems(prev => prev.filter(itemId => itemId !== id));
+  // Delete item
+  const deleteItem = async (id: string) => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('closet_items')
+        .delete()
+        .eq('id', id)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      setItems(prev => prev.filter(item => item.id !== id));
+      setSelectedItems(prev => prev.filter(itemId => itemId !== id));
+      toast.success('Item deleted');
+    } catch (error) {
+      console.error('Error deleting item:', error);
+      toast.error('Failed to delete item');
+    }
   };
 
-  const deleteItems = (ids: string[]) => {
-    setItems(prev => prev.filter(item => !ids.includes(item.id)));
-    setSelectedItems([]);
+  // Delete multiple items
+  const deleteItems = async (ids: string[]) => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('closet_items')
+        .delete()
+        .in('id', ids)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      setItems(prev => prev.filter(item => !ids.includes(item.id)));
+      setSelectedItems([]);
+      toast.success(`${ids.length} items deleted`);
+    } catch (error) {
+      console.error('Error deleting items:', error);
+      toast.error('Failed to delete items');
+    }
   };
 
   const toggleSelectItem = (id: string) => {
@@ -201,10 +338,10 @@ export function useCloset() {
     });
   };
 
-  const markAsWorn = (id: string) => {
+  const markAsWorn = async (id: string) => {
     const item = items.find(i => i.id === id);
     if (item) {
-      updateItem(id, {
+      await updateItem(id, {
         wornCount: item.wornCount + 1,
         lastWorn: new Date().toISOString(),
       });
@@ -234,5 +371,6 @@ export function useCloset() {
     clearSelection,
     clearFilters,
     markAsWorn,
+    refetch: fetchItems,
   };
 }

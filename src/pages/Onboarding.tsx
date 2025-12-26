@@ -52,6 +52,11 @@ export default function Onboarding() {
         : [...(prev[field] as string[]), item]
     }));
   };
+  //sign in 
+  const goToSignIn = () => {
+    setAuthMode('signin');
+    setCurrentStep(2);
+  };
 
   const handleAuthSubmit = async () => {
     setIsLoading(true);
@@ -145,7 +150,9 @@ export default function Onboarding() {
         <LoginPage key="login" nextStep={nextStep} />
       )}
       {currentStep === 1 && (
-        <LandingPage key="landing" nextStep={nextStep} />
+        <LandingPage key="landing" 
+        onSignIn={goToSignIn}
+        onSignUp={nextStep} />
       )}
       {currentStep === 2 && (
         <BasicInfoStep 

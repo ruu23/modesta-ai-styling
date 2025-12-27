@@ -6,7 +6,6 @@ import { useProfile } from '@/hooks/useProfile';
 import { useToast } from '@/hooks/use-toast';
 import {
   LoginPage,
-  LandingPage,
   BasicInfoStep,
   CountryStep,
   CityStep,
@@ -149,12 +148,16 @@ export default function Onboarding() {
       {currentStep === 0 && (
         <LoginPage key="login" nextStep={nextStep} />
       )}
+
+      {/* 
       {currentStep === 1 && (
         <LandingPage key="landing" 
         onSignIn={goToSignIn}
         onSignUp={nextStep} />
       )}
-      {currentStep === 2 && (
+        */}
+
+      {currentStep === 1 && (
         <BasicInfoStep 
           key="basic"
           userData={userData} 
@@ -165,7 +168,7 @@ export default function Onboarding() {
           setAuthMode={setAuthMode}
         />
       )}
-      {currentStep === 3 && (
+      {currentStep === 2 && (
         <CountryStep 
           key="country"
           updateUserData={updateUserData} 
@@ -173,7 +176,7 @@ export default function Onboarding() {
           prevStep={prevStep} 
         />
       )}
-      {currentStep === 4 && (
+      {currentStep === 3 && (
         <CityStep 
           key="city"
           userData={userData} 
@@ -182,7 +185,7 @@ export default function Onboarding() {
           prevStep={prevStep} 
         />
       )}
-      {currentStep === 5 && (
+      {currentStep === 4 && (
         <BrandsStep 
           key="brands"
           userData={userData} 
@@ -191,7 +194,7 @@ export default function Onboarding() {
           prevStep={prevStep} 
         />
       )}
-      {currentStep === 6 && (
+      {currentStep === 5 && (
         <HijabStyleStep 
           key="hijab"
           updateUserData={updateUserData} 
@@ -199,7 +202,7 @@ export default function Onboarding() {
           prevStep={prevStep} 
         />
       )}
-      {currentStep === 7 && (
+      {currentStep === 6 && (
         <ColorsStyleStep 
           key="colors"
           userData={userData} 
@@ -208,7 +211,7 @@ export default function Onboarding() {
           prevStep={prevStep} 
         />
       )}
-      {currentStep === 8 && (
+      {currentStep === 7 && (
         <CompletionPage 
           key="complete"
           userData={userData} 

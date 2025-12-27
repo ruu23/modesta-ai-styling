@@ -377,13 +377,6 @@ export default function Auth() {
               </button>
             </p>
           </div>
-
-          {/* Info */}
-          <div className="mt-12 p-4 bg-secondary border border-border">
-            <p className="text-xs text-muted-foreground text-center">
-              Tip: You may want to disable "Confirm email" in Supabase settings for faster testing.
-            </p>
-          </div>
         </motion.div>
       </main>
     </div>

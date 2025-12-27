@@ -268,7 +268,9 @@ export const LoginPage = ({ nextStep }: Pick<StepProps, "nextStep">) => (
   </motion.div>
 );
 
+{/* Remove this part */}
 // Landing Page
+{/* 
 export const LandingPage = ({
   onSignIn,
   onSignUp,
@@ -331,6 +333,7 @@ export const LandingPage = ({
     </div>
   </motion.div>
 );
+*/}
 
 // Basic Info Step - Now with auth
 export const BasicInfoStep = ({

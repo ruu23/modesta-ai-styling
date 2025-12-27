@@ -22,8 +22,14 @@ export default function Onboarding() {
   const { completeOnboarding } = useProfile();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const [currentStep, setCurrentStep] = useState(0);
+
+  const searchParams = new URLSearchParams(window.location.search);
+  const stepFromUrl = searchParams.get('step');
+  const initialStep = stepFromUrl ? parseInt(stepFromUrl) : 0;
+  
+  const [currentStep, setCurrentStep] = useState(initialStep);
   const [authMode, setAuthMode] = useState<'signup' | 'signin'>('signup');
+  
   const [userData, setUserData] = useState<UserData>({
     fullName: '',
     email: '',

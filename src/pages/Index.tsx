@@ -1,11 +1,12 @@
-import { Link } from 'react-router-dom';
-import { ArrowRight, Sparkles, Scan, CalendarDays, ShoppingBag, Home, Shirt, Calendar, Users, User, CloudSun } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { ArrowRight, Sparkles, Scan, CalendarDays, ShoppingBag, Home, Shirt, Calendar, Users, User, CloudSun, LogOut } from 'lucide-react';
 import { ThemeToggle } from '@/components/theme';
 import { AppLayout } from '@/components/layout';
 import { memo, useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useWeather } from '@/hooks/useWeather';
-
+import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
 interface UserData {
   fullName: string;
   email: string;
@@ -209,6 +210,18 @@ const WeatherWidget = () => {
 
 export default memo(function Index() {
   const [userData, setUserData] = useState<UserData | null>(null);
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const handleLogout = async () => {
+    await signOut();
+    toast({
+      title: "Signed out",
+      description: "You have been successfully signed out.",
+    });
+    navigate('/auth');
+  };
 
   useEffect(() => {
     const stored = localStorage.getItem('modesta-user');
@@ -251,19 +264,30 @@ export default memo(function Index() {
               ))}
             </nav>
             <div className="flex items-center gap-4">
-              {userData ? (
-                <Link 
-                  to="/settings"
-                  className="text-[10px] uppercase tracking-[0.15em] text-foreground hover:text-gold transition-colors duration-300"
-                >
-                  Hi, {userData.fullName.split(' ')[0]}
-                </Link>
+              {user ? (
+                <>
+                  {userData && (
+                    <Link 
+                      to="/settings"
+                      className="text-[10px] uppercase tracking-[0.15em] text-foreground hover:text-gold transition-colors duration-300"
+                    >
+                      Hi, {userData.fullName.split(' ')[0]}
+                    </Link>
+                  )}
+                  <button
+                    onClick={handleLogout}
+                    className="text-[10px] uppercase tracking-[0.15em] text-muted-foreground hover:text-foreground transition-colors duration-300 flex items-center gap-1.5"
+                  >
+                    <LogOut className="w-3.5 h-3.5" strokeWidth={1.5} />
+                    <span className="hidden sm:inline">Sign Out</span>
+                  </button>
+                </>
               ) : (
                 <Link 
-                  to="/"
+                  to="/auth"
                   className="text-[10px] uppercase tracking-[0.15em] px-4 py-2 border border-foreground hover:bg-foreground hover:text-background transition-colors duration-300"
                 >
-                  Get Started
+                  Sign In
                 </Link>
               )}
               <ThemeToggle />

@@ -224,11 +224,14 @@ export const LoginPage = ({ nextStep }: Pick<StepProps, "nextStep">) => {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   const signInWithGoogle = async () => {
-    setIsGoogleLoading(true);
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/onboarding`, // Simplified
+        redirectTo: `${window.location.origin}/onboarding`,
+        queryParams: {
+          prompt: "select_account", // This forces the account picker to show up
+          access_type: "offline",
+        },
       },
     });
   };

@@ -17,12 +17,13 @@ import {
 } from '@/components/onboarding/OnboardingSteps';
 
 export default function Onboarding() {
-  
   const navigate = useNavigate();
   const { signUp, signIn, user, loading } = useAuth();
   const { completeOnboarding } = useProfile();
   const { toast } = useToast();
+  
   const [isLoading, setIsLoading] = useState(false);
+  const [hasAutoJumped, setHasAutoJumped] = useState(false); // NEW: Prevents "Back" button loop
 
   const searchParams = new URLSearchParams(window.location.search);
   const stepFromUrl = searchParams.get('step');
@@ -45,14 +46,23 @@ export default function Onboarding() {
     hijabStyle: '',
     occasions: []
   });
+
+  // --- 1. HANDLE AUTO-JUMP & GOOGLE METADATA ---
   useEffect(() => {
-    // If Supabase has finished loading and we have a user
-    // we should jump past the Login (0) and Basic Info (1) steps
-    if (!loading && user && currentStep < 2) {
-      setCurrentStep(2);
+    if (!loading && user) {
+      // Auto-fill name from Google if available
+      if (user.user_metadata?.full_name && !userData.fullName) {
+        updateUserData('fullName', user.user_metadata.full_name);
+      }
+
+      // Only jump to Step 2 if we haven't jumped before and are at the start
+      if (currentStep < 2 && !hasAutoJumped) {
+        setCurrentStep(2);
+        setHasAutoJumped(true);
+      }
     }
-  }, [user, loading, currentStep]);
-  
+  }, [user, loading, currentStep, hasAutoJumped]);
+
   const updateUserData = (field: keyof UserData, value: string) => {
     setUserData(prev => ({ ...prev, [field]: value }));
   };
@@ -65,10 +75,10 @@ export default function Onboarding() {
         : [...(prev[field] as string[]), item]
     }));
   };
-  //sign in 
+
   const goToSignIn = () => {
     setAuthMode('signin');
-    setCurrentStep(2);
+    setCurrentStep(0); // Go to login page
   };
 
   const handleAuthSubmit = async () => {
@@ -79,37 +89,20 @@ export default function Onboarding() {
           full_name: userData.fullName,
         });
         if (error) {
-          toast({
-            title: "Sign up failed",
-            description: error.message,
-            variant: "destructive",
-          });
+          toast({ title: "Sign up failed", description: error.message, variant: "destructive" });
           return;
         }
-        toast({
-          title: "Account created!",
-          description: "Please check your email to verify your account, or continue to complete your profile.",
-        });
-        // Continue to next step for profile completion
         setCurrentStep(currentStep + 1);
       } else {
         const { error } = await signIn(userData.email, userData.password);
         if (error) {
-          toast({
-            title: "Sign in failed",
-            description: error.message,
-            variant: "destructive",
-          });
+          toast({ title: "Sign in failed", description: error.message, variant: "destructive" });
           return;
         }
         navigate('/home');
       }
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "An unexpected error occurred",
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: "An unexpected error occurred", variant: "destructive" });
     } finally {
       setIsLoading(false);
     }
@@ -117,7 +110,6 @@ export default function Onboarding() {
 
   const handleCompleteOnboarding = async () => {
     if (!user) {
-      // If no user (email not confirmed), save to localStorage and continue
       localStorage.setItem('modesta-user', JSON.stringify(userData));
       return;
     }
@@ -133,13 +125,8 @@ export default function Onboarding() {
         preferred_colors: userData.favoriteColors,
       });
 
-      if (error) {
-        console.error('Error saving profile:', error);
-        // Fallback to localStorage
-        localStorage.setItem('modesta-user', JSON.stringify(userData));
-      }
+      if (error) localStorage.setItem('modesta-user', JSON.stringify(userData));
     } catch (error) {
-      console.error('Error completing onboarding:', error);
       localStorage.setItem('modesta-user', JSON.stringify(userData));
     } finally {
       setIsLoading(false);
@@ -147,91 +134,63 @@ export default function Onboarding() {
   };
 
   const nextStep = () => {
-    if (currentStep < 8) setCurrentStep(currentStep + 1);
-    if (currentStep === 7) {
-      handleCompleteOnboarding();
+    if (currentStep < 7) setCurrentStep(currentStep + 1);
+    if (currentStep === 6) handleCompleteOnboarding();
+  };
+
+  // --- 2. UPDATED PREV STEP ---
+  const prevStep = () => {
+    if (currentStep > 0) {
+      setHasAutoJumped(true); // Ensures the useEffect doesn't push us forward again
+      setCurrentStep(currentStep - 1);
     }
   };
 
-  const prevStep = () => {
-    if (currentStep > 0) setCurrentStep(currentStep - 1);
-  };
-
   return (
-    <AnimatePresence mode="wait">
-      {currentStep === 0 && (
-        <LoginPage key="login" nextStep={nextStep} />
-      )}
+    <div className="min-h-screen bg-background">
+      <AnimatePresence mode="wait">
+        {currentStep === 0 && (
+          <LoginPage key="login" nextStep={nextStep} />
+        )}
 
-      {/* 
-      {currentStep === 1 && (
-        <LandingPage key="landing" 
-        onSignIn={goToSignIn}
-        onSignUp={nextStep} />
-      )}
-        */}
+        {currentStep === 1 && (
+          <BasicInfoStep 
+            key="basic"
+            userData={userData} 
+            updateUserData={updateUserData} 
+            nextStep={handleAuthSubmit}
+            isLoading={isLoading}
+            authMode={authMode}
+            setAuthMode={setAuthMode}
+          />
+        )}
+        
+        {currentStep === 2 && (
+          <CountryStep 
+            key="country"
+            updateUserData={updateUserData} 
+            nextStep={nextStep} 
+            prevStep={prevStep} 
+          />
+        )}
 
-      {currentStep === 1 && (
-        <BasicInfoStep 
-          key="basic"
-          userData={userData} 
-          updateUserData={updateUserData} 
-          nextStep={handleAuthSubmit}
-          isLoading={isLoading}
-          authMode={authMode}
-          setAuthMode={setAuthMode}
-        />
-      )}
-      {currentStep === 2 && (
-        <CountryStep 
-          key="country"
-          updateUserData={updateUserData} 
-          nextStep={nextStep} 
-          prevStep={prevStep} 
-        />
-      )}
-      {currentStep === 3 && (
-        <CityStep 
-          key="city"
-          userData={userData} 
-          updateUserData={updateUserData} 
-          nextStep={nextStep} 
-          prevStep={prevStep} 
-        />
-      )}
-      {currentStep === 4 && (
-        <BrandsStep 
-          key="brands"
-          userData={userData} 
-          toggleArrayItem={toggleArrayItem} 
-          nextStep={nextStep} 
-          prevStep={prevStep} 
-        />
-      )}
-      {currentStep === 5 && (
-        <HijabStyleStep 
-          key="hijab"
-          updateUserData={updateUserData} 
-          nextStep={nextStep} 
-          prevStep={prevStep} 
-        />
-      )}
-      {currentStep === 6 && (
-        <ColorsStyleStep 
-          key="colors"
-          userData={userData} 
-          toggleArrayItem={toggleArrayItem} 
-          nextStep={nextStep} 
-          prevStep={prevStep} 
-        />
-      )}
-      {currentStep === 7 && (
-        <CompletionPage 
-          key="complete"
-          userData={userData} 
-          onNavigate={navigate} 
-        />
-      )}
-    </AnimatePresence>
+        {/* ... Rest of your steps (3 through 7) remain exactly the same ... */}
+        {currentStep === 3 && (
+          <CityStep key="city" userData={userData} updateUserData={updateUserData} nextStep={nextStep} prevStep={prevStep} />
+        )}
+        {currentStep === 4 && (
+          <BrandsStep key="brands" userData={userData} toggleArrayItem={toggleArrayItem} nextStep={nextStep} prevStep={prevStep} />
+        )}
+        {currentStep === 5 && (
+          <HijabStyleStep key="hijab" updateUserData={updateUserData} nextStep={nextStep} prevStep={prevStep} />
+        )}
+        {currentStep === 6 && (
+          <ColorsStyleStep key="colors" userData={userData} toggleArrayItem={toggleArrayItem} nextStep={nextStep} prevStep={prevStep} />
+        )}
+        {currentStep === 7 && (
+          <CompletionPage key="complete" userData={userData} onNavigate={navigate} />
+        )}
+      </AnimatePresence>
+    </div>
   );
 }

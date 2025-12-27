@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
@@ -17,8 +17,9 @@ import {
 } from '@/components/onboarding/OnboardingSteps';
 
 export default function Onboarding() {
+  
   const navigate = useNavigate();
-  const { signUp, signIn, user } = useAuth();
+  const { signUp, signIn, user, loading } = useAuth();
   const { completeOnboarding } = useProfile();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
@@ -44,7 +45,14 @@ export default function Onboarding() {
     hijabStyle: '',
     occasions: []
   });
-
+  useEffect(() => {
+    // If Supabase has finished loading and we have a user
+    // we should jump past the Login (0) and Basic Info (1) steps
+    if (!loading && user && currentStep < 2) {
+      setCurrentStep(2);
+    }
+  }, [user, loading, currentStep]);
+  
   const updateUserData = (field: keyof UserData, value: string) => {
     setUserData(prev => ({ ...prev, [field]: value }));
   };

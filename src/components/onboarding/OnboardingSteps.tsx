@@ -228,19 +228,9 @@ export const LoginPage = ({ nextStep }: Pick<StepProps, "nextStep">) => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/onboarding?step=2`, // Changed from /home
-        queryParams: {
-          access_type: "offline",
-          prompt: "consent",
-        },
+        redirectTo: `${window.location.origin}/onboarding`, // Simplified
       },
     });
-
-    if (error) {
-      console.error("Google sign in error:", error);
-      alert(error.message);
-      setIsGoogleLoading(false);
-    }
   };
 
   return (

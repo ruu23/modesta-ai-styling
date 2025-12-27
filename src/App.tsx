@@ -7,6 +7,7 @@ import { AnimatePresence } from "framer-motion";
 import { ThemeProvider } from "@/components/theme";
 import { AccessibilityProvider } from "@/components/accessibility";
 import { AuthProvider } from "@/hooks/useAuth";
+import { ProtectedRoute } from "@/components/auth";
 import { LazyPage } from "@/components/ui/LazyLoad";
 import { 
   LazyCloset, 
@@ -39,45 +40,59 @@ function AnimatedRoutes() {
       <Routes location={location} key={location.pathname}>
         <Route path="/" element={<Onboarding />} />
         <Route path="/auth" element={<Auth />} />
-        <Route path="/home" element={<Index />} />
+        <Route path="/home" element={
+          <ProtectedRoute>
+            <Index />
+          </ProtectedRoute>
+        } />
         <Route 
           path="/closet" 
           element={
-            <LazyPage>
-              <LazyCloset />
-            </LazyPage>
+            <ProtectedRoute>
+              <LazyPage>
+                <LazyCloset />
+              </LazyPage>
+            </ProtectedRoute>
           } 
         />
         <Route 
           path="/outfit-builder" 
           element={
-            <LazyPage>
-              <LazyOutfitBuilder />
-            </LazyPage>
+            <ProtectedRoute>
+              <LazyPage>
+                <LazyOutfitBuilder />
+              </LazyPage>
+            </ProtectedRoute>
           } 
         />
         <Route 
           path="/chat" 
           element={
-            <LazyPage>
-              <LazyChat />
-            </LazyPage>
+            <ProtectedRoute>
+              <LazyPage>
+                <LazyChat />
+              </LazyPage>
+            </ProtectedRoute>
           } 
         />
         <Route 
           path="/calendar" 
           element={
-            <LazyPage>
-              <LazyCalendar />
-            </LazyPage>
+            <ProtectedRoute>
+              <LazyPage>
+                <LazyCalendar />
+              </LazyPage>
+            </ProtectedRoute>
           } 
         />
         <Route 
           path="/settings" 
           element={
-            <LazyPage>
-              <LazySettings />
-            </LazyPage>
+            <ProtectedRoute>
+              <LazyPage>
+                <LazySettings />
+              </LazyPage>
+            </ProtectedRoute>
           } 
         />
         <Route path="*" element={<NotFound />} />

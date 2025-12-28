@@ -18,8 +18,7 @@ import {
 
 export default function Onboarding() {
   const navigate = useNavigate();
-  // Destructure hasCompletedOnboarding to use in our guard
-  const { signUp, signIn, user, loading, hasCompletedOnboarding } = useAuth();
+  const { signUp, signIn, user, loading } = useAuth();
   const { completeOnboarding } = useProfile();
   const { toast } = useToast();
 
@@ -48,16 +47,7 @@ export default function Onboarding() {
     occasions: []
   });
 
-  // --- CORE FIX: The Route Guard ---
-  // This triggers if the user clicks 'Back' or tries to visit /onboarding while done
-  useEffect(() => {
-    if (!loading && hasCompletedOnboarding) {
-      // replace: true wipes the onboarding entry from the browser history
-      navigate('/home', { replace: true });
-    }
-  }, [loading, hasCompletedOnboarding, navigate]);
-
-  // --- Google Sync Logic ---
+  // --- FIX 1: Enhanced Google Sync ---
   useEffect(() => {
     if (!loading && user) {
       setUserData(prev => ({
@@ -71,7 +61,7 @@ export default function Onboarding() {
         setHasAutoJumped(true);
       }
     }
-  }, [user, loading, hasAutoJumped]);
+  }, [user, loading, hasAutoJumped]); // ❗ removed currentStep to avoid loop
 
   const updateUserData = (field: keyof UserData, value: string) => {
     setUserData(prev => ({ ...prev, [field]: value }));
@@ -104,8 +94,7 @@ export default function Onboarding() {
           toast({ title: "Sign in failed", description: error.message, variant: "destructive" });
           return;
         }
-        // Use replace: true for existing users signing in
-        navigate('/home', { replace: true });
+        navigate('/home');
       }
     } catch {
       toast({ title: "Error", description: "Unexpected error occurred", variant: "destructive" });
@@ -115,32 +104,47 @@ export default function Onboarding() {
   };
 
   const handleCompleteOnboarding = async () => {
-    localStorage.setItem('modesta-pending-profile', JSON.stringify(userData));
-    
-    if (!user) return;
+  // Save to localStorage as backup
+  localStorage.setItem('modesta-pending-profile', JSON.stringify(userData));
+  
+  if (!user) {
+    // User not confirmed yet - data will be saved when they confirm email
+    console.log('User not authenticated yet, profile saved to localStorage');
+    return;
+  }
 
-    setIsLoading(true);
-    try {
-      const { error } = await completeOnboarding(user.id, {
-        full_name: userData.fullName,
-        country: userData.country,
-        city: userData.city,
-        brands: userData.brands,
-        hijab_style: userData.hijabStyle,
-        favorite_colors: userData.favoriteColors,
-        style_personality: userData.stylePersonality,
+  setIsLoading(true);
+  try {
+    const { error } = await completeOnboarding(user.id, {
+      full_name: userData.fullName,
+      country: userData.country,
+      city: userData.city,
+      brands: userData.brands,
+      hijab_style: userData.hijabStyle,
+      favorite_colors: userData.favoriteColors,
+      style_personality: userData.stylePersonality,
+    });
+
+    if (error) {
+      console.error('Error saving profile:', error);
+      toast({
+        title: "Profile save failed",
+        description: "Your preferences were saved locally and will sync later.",
+        variant: "destructive",
       });
-
-      if (!error) {
-        localStorage.removeItem('modesta-pending-profile');
-      }
-    } catch (error) {
-      console.error('Error completing onboarding:', error);
-    } finally {
-      setIsLoading(false);
+    } else {
+      // Clear localStorage on success
+      localStorage.removeItem('modesta-pending-profile');
     }
-  };
+  } catch (error) {
+    console.error('Error completing onboarding:', error);
+  } finally {
+    setIsLoading(false);
+  }
+};
 
+
+  // --- FIX 2: Better nextStep flow ---
   const nextStep = async () => {
     if (currentStep === 6) {
       setIsLoading(true);
@@ -159,12 +163,6 @@ export default function Onboarding() {
       setCurrentStep(prev => prev - 1);
     }
   };
-
-  // While checking if the user is already onboarded, show a simple loader
-  // to prevent the Country Step from flickering
-  if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
-  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -210,12 +208,7 @@ export default function Onboarding() {
         )}
 
         {currentStep === 7 && (
-          <CompletionPage 
-            key="complete" 
-            userData={userData} 
-            // The magic happens here: { replace: true }
-            onNavigate={(path) => navigate(path, { replace: true })} 
-          />
+          <CompletionPage key="complete" userData={userData} onNavigate={navigate} />
         )}
       </AnimatePresence>
     </div>

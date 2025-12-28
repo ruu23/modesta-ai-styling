@@ -20,9 +20,6 @@ import Index from "./pages/Index";
 import Onboarding from "./pages/Onboarding";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
-import { OnboardingGate } from '@/components/auth/OnboardingGate';
-import { Navigate } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -37,60 +34,68 @@ const queryClient = new QueryClient({
 
 function AnimatedRoutes() {
   const location = useLocation();
-  const { user, loading, hasCompletedOnboarding } = useAuth(); // Get state from hook
   
-  if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
-  }
-
   return (
     <AnimatePresence mode="wait" initial={false}>
       <Routes location={location} key={location.pathname}>
-        <Route 
-          path="/" 
-          element={
-            user ? (
-              hasCompletedOnboarding ? <Navigate to="/home" replace /> : <Navigate to="/onboarding" replace />
-            ) : (
-              <Auth /> // If not logged in, send to Auth page instead of Onboarding
-            )
-          } 
-        />
-        <Route 
-          path="/onboarding" 
-          element={
-            hasCompletedOnboarding ? (
-              <Navigate to="/home" replace /> 
-            ) : (
-              <Onboarding />
-            )
-          } 
-        />
+        <Route path="/" element={<Onboarding />} />
+        <Route path="/onboarding" element={<Onboarding />} />
         <Route path="/auth" element={<Auth />} />
-        
-        <Route
-          path="/home"
-          element={
-            <ProtectedRoute>
-              <OnboardingGate>
-                <Index />
-              </OnboardingGate>
-            </ProtectedRoute>
-          }
-        />
-
-        {/* ... Rest of your lazy loaded routes (Closet, Chat, etc.) wrapped in ProtectedRoute and OnboardingGate ... */}
+        <Route path="/home" element={
+          <ProtectedRoute>
+            <Index />
+          </ProtectedRoute>
+        } />
         <Route 
           path="/closet" 
           element={
             <ProtectedRoute>
-              <OnboardingGate>
-                <LazyPage><LazyCloset /></LazyPage>
-              </OnboardingGate>
+              <LazyPage>
+                <LazyCloset />
+              </LazyPage>
             </ProtectedRoute>
           } 
         />
-        
+        <Route 
+          path="/outfit-builder" 
+          element={
+            <ProtectedRoute>
+              <LazyPage>
+                <LazyOutfitBuilder />
+              </LazyPage>
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/chat" 
+          element={
+            <ProtectedRoute>
+              <LazyPage>
+                <LazyChat />
+              </LazyPage>
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/calendar" 
+          element={
+            <ProtectedRoute>
+              <LazyPage>
+                <LazyCalendar />
+              </LazyPage>
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/settings" 
+          element={
+            <ProtectedRoute>
+              <LazyPage>
+                <LazySettings />
+              </LazyPage>
+            </ProtectedRoute>
+          } 
+        />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AnimatePresence>

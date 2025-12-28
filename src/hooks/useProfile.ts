@@ -9,7 +9,7 @@ export interface Profile {
   brands: string[];
   hijab_style: string;
   favorite_colors: string[];
-  style_personality: string[];
+  style_personality: string;
   has_completed_onboarding: boolean;
   avatar_url: string | null;
   created_at: string;
@@ -32,16 +32,10 @@ export const useProfile = () => {
     return data;
   };
 
-  const updateProfile = async (
-    userId: string,
-    updates: Partial<Profile>
-  ): Promise<{ error: Error | null }> => {
+  const updateProfile = async (userId: string, updates: Partial<Profile>): Promise<{ error: Error | null }> => {
     const { error } = await supabase
       .from('profile')
-      .update({
-        ...updates,
-        updated_at: new Date().toISOString(),
-      })
+      .update(updates)
       .eq('id', userId);
 
     return { error: error as Error | null };
@@ -59,27 +53,28 @@ export const useProfile = () => {
       style_personality: string[];
     }
   ): Promise<{ error: Error | null }> => {
-    // 1. Perform the UPSERT to Supabase
     const { error } = await supabase
       .from('profile')
       .upsert({
         id: userId,
-        ...data,
+        full_name: data.full_name,
+        country: data.country,
+        city: data.city,
+        brands: data.brands,
+        hijab_style: data.hijab_style,
+        favorite_colors: data.favorite_colors,
         has_completed_onboarding: true,
+        style_personality: data.style_personality,
         updated_at: new Date().toISOString(),
       });
-
-    if (!error) {
-      // 2. Clean up the PENDING data (from useAuth and Onboarding)
-      // We use the same key here as we do in useAuth to stay consistent
-      localStorage.removeItem('modesta-pending-profile');
-      
-      // 3. Mark completion locally for instant Route Guard reaction
-      localStorage.setItem('onboardingCompleted', 'true');
-    }
+      if (!error) {
+        // Also update local storage for an immediate UI response
+        localStorage.setItem('onboardingCompleted', 'true');
+      }
 
     return { error: error as Error | null };
   };
+
 
   return { getProfile, updateProfile, completeOnboarding };
 };

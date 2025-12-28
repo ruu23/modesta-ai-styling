@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -6,66 +6,42 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  signUp: (
-    email: string,
-    password: string,
-    metadata?: { full_name?: string }
-  ) => Promise<{ error: Error | null }>;
-  signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
+  signIn: (email: string, password: string) => Promise<{ error: any }>;
+  signUp: (email: string, password: string, metadata?: any) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true); // Start with loading true
 
   useEffect(() => {
-    // 1️⃣ Auth state listener
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
+    // Set up auth state listener FIRST
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        setLoading(false);
 
-      // ✅ FIX: Sync pending profile after login / email confirmation
-      if (event === 'SIGNED_IN' && session?.user) {
-        setTimeout(() => {
-          const pendingProfile = localStorage.getItem('modesta-pending-profile');
-
-          if (pendingProfile) {
-            const userData = JSON.parse(pendingProfile);
-
-            supabase
-              .from('profile')
-              .upsert({
-                id: session.user.id,
-                full_name: userData.fullName,
-                country: userData.country,
-                city: userData.city,
-                brands: userData.brands,
-                hijab_style: userData.hijabStyle,
-                favorite_colors: userData.favoriteColors,
-                style_personality: userData.stylePersonality,
-                updated_at: new Date().toISOString(),
-              })
-              .then(({ error }) => {
-                if (!error) {
-                  localStorage.removeItem('modesta-pending-profile');
-                  console.log('✅ Pending profile synced successfully');
-                } else {
-                  console.error('❌ Failed to sync pending profile:', error);
-                }
-              });
-          }
-        }, 0);
+        // Handle pending profile data after sign in
+        if (event === 'SIGNED_IN' && session?.user) {
+          setTimeout(() => {
+            const pendingData = localStorage.getItem('pendingProfileData');
+            if (pendingData) {
+              const profileData = JSON.parse(pendingData);
+              supabase.from('profiles')
+                .upsert({ id: session.user.id, ...profileData })
+                .then(() => localStorage.removeItem('pendingProfileData'));
+            }
+          }, 0);
+        }
       }
-    });
+    );
 
-    // 2️⃣ Check existing session on load
+    // THEN check for existing session (this restores the session from localStorage)
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
@@ -75,32 +51,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => subscription.unsubscribe();
   }, []);
 
-  const signUp = async (
-    email: string,
-    password: string,
-    metadata?: { full_name?: string }
-  ) => {
-    const redirectUrl = `${window.location.origin}/home`;
+  const signIn = async (email: string, password: string) => {
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    return { error };
+  };
 
+  const signUp = async (email: string, password: string, metadata?: any) => {
     const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        emailRedirectTo: redirectUrl,
-        data: metadata,
-      },
+        emailRedirectTo: `${window.location.origin}/`,
+        data: metadata
+      }
     });
-
-    return { error: error as Error | null };
-  };
-
-  const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    return { error: error as Error | null };
+    return { error };
   };
 
   const signOut = async () => {
@@ -108,18 +73,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider
-      value={{ user, session, loading, signUp, signIn, signOut }}
-    >
+    <AuthContext.Provider value={{ user, session, loading, signIn, signUp, signOut }}>
       {children}
     </AuthContext.Provider>
   );
-};
+}
 
-export const useAuth = () => {
+export function useAuth() {
   const context = useContext(AuthContext);
-  if (context === undefined) {
+  if (!context) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
-};
+}

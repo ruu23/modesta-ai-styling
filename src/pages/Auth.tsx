@@ -1,64 +1,66 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { useAuth } from '@/hooks/useAuth';
-import { useToast } from '@/hooks/use-toast';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Eye, EyeOff, Mail, Lock, User, ArrowLeft } from 'lucide-react';
-import { z } from 'zod';
-import { supabase } from '@/integrations/supabase/client';
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Eye, EyeOff, Mail, Lock, User, ArrowLeft } from "lucide-react";
+import { z } from "zod";
+import { supabase } from "@/integrations/supabase/client";
 
 const authSchema = z.object({
-  email: z.string().email('Please enter a valid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
+  email: z.string().email("Please enter a valid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
-const signUpSchema = authSchema.extend({
-  fullName: z.string().min(2, 'Name must be at least 2 characters'),
-  confirmPassword: z.string(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ["confirmPassword"],
-});
+const signUpSchema = authSchema
+  .extend({
+    fullName: z.string().min(2, "Name must be at least 2 characters"),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ["confirmPassword"],
+  });
 
 export default function Auth() {
   const navigate = useNavigate();
   const { signUp, signIn, user, loading } = useAuth();
   const { toast } = useToast();
-  
-  const [mode, setMode] = useState<'signin' | 'signup'>('signin');
+
+  const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  
+
   const [formData, setFormData] = useState({
-    fullName: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
+    fullName: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
   });
 
   // Redirect if already authenticated
   useEffect(() => {
     if (!loading && user) {
-      navigate('/home');
+      navigate("/home");
     }
   }, [user, loading, navigate]);
 
   const updateField = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
     // Clear error when user types
     if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
+      setErrors((prev) => ({ ...prev, [field]: "" }));
     }
   };
 
   const validateForm = () => {
     try {
-      if (mode === 'signup') {
+      if (mode === "signup") {
         signUpSchema.parse(formData);
       } else {
         authSchema.parse(formData);
@@ -81,12 +83,12 @@ export default function Auth() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) return;
-    
+
     setIsLoading(true);
     try {
-      if (mode === 'signup') {
+      if (mode === "signup") {
         const { error } = await signUp(formData.email, formData.password, {
           full_name: formData.fullName,
         });
@@ -112,7 +114,7 @@ export default function Auth() {
           });
           return;
         }
-        navigate('/home');
+        navigate("/home");
       }
     } catch (error) {
       toast({
@@ -126,13 +128,13 @@ export default function Auth() {
   };
 
   const switchMode = () => {
-    setMode(mode === 'signin' ? 'signup' : 'signin');
+    setMode(mode === "signin" ? "signup" : "signin");
     setErrors({});
   };
 
   const signInWithGoogle = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
+      provider: "google",
       options: {
         redirectTo: `${window.location.origin}/home`,
       },
@@ -148,7 +150,7 @@ export default function Auth() {
 
   const signInWithApple = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'apple',
+      provider: "apple",
       options: {
         redirectTo: `${window.location.origin}/home`,
       },
@@ -174,8 +176,8 @@ export default function Auth() {
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
       <header className="p-6">
-        <button 
-          onClick={() => navigate('/')}
+        <button
+          onClick={() => navigate("/")}
           className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
@@ -198,13 +200,13 @@ export default function Auth() {
             </h1>
             <div className="divider-papyrus mb-6" />
             <p className="text-muted-foreground text-sm tracking-wide">
-              {mode === 'signin' ? 'Welcome back' : 'Create your account'}
+              {mode === "signin" ? "Welcome back" : "Create your account"}
             </p>
           </div>
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-6">
-            {mode === 'signup' && (
+            {mode === "signup" && (
               <div className="space-y-2">
                 <Label htmlFor="fullName" className="text-editorial">
                   Full Name
@@ -215,7 +217,7 @@ export default function Auth() {
                     id="fullName"
                     type="text"
                     value={formData.fullName}
-                    onChange={(e) => updateField('fullName', e.target.value)}
+                    onChange={(e) => updateField("fullName", e.target.value)}
                     placeholder="Your name"
                     className="pl-12 h-12 bg-secondary border-border focus:border-primary"
                   />
@@ -236,7 +238,7 @@ export default function Auth() {
                   id="email"
                   type="email"
                   value={formData.email}
-                  onChange={(e) => updateField('email', e.target.value)}
+                  onChange={(e) => updateField("email", e.target.value)}
                   placeholder="your@email.com"
                   className="pl-12 h-12 bg-secondary border-border focus:border-primary"
                 />
@@ -254,9 +256,9 @@ export default function Auth() {
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   id="password"
-                  type={showPassword ? 'text' : 'password'}
+                  type={showPassword ? "text" : "password"}
                   value={formData.password}
-                  onChange={(e) => updateField('password', e.target.value)}
+                  onChange={(e) => updateField("password", e.target.value)}
                   placeholder="••••••••"
                   className="pl-12 pr-12 h-12 bg-secondary border-border focus:border-primary"
                 />
@@ -265,7 +267,11 @@ export default function Auth() {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                 >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {showPassword ? (
+                    <EyeOff className="w-4 h-4" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )}
                 </button>
               </div>
               {errors.password && (
@@ -273,7 +279,7 @@ export default function Auth() {
               )}
             </div>
 
-            {mode === 'signup' && (
+            {mode === "signup" && (
               <div className="space-y-2">
                 <Label htmlFor="confirmPassword" className="text-editorial">
                   Confirm Password
@@ -282,9 +288,11 @@ export default function Auth() {
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
                     id="confirmPassword"
-                    type={showConfirmPassword ? 'text' : 'password'}
+                    type={showConfirmPassword ? "text" : "password"}
                     value={formData.confirmPassword}
-                    onChange={(e) => updateField('confirmPassword', e.target.value)}
+                    onChange={(e) =>
+                      updateField("confirmPassword", e.target.value)
+                    }
                     placeholder="••••••••"
                     className="pl-12 pr-12 h-12 bg-secondary border-border focus:border-primary"
                   />
@@ -293,11 +301,17 @@ export default function Auth() {
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                     className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                   >
-                    {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    {showConfirmPassword ? (
+                      <EyeOff className="w-4 h-4" />
+                    ) : (
+                      <Eye className="w-4 h-4" />
+                    )}
                   </button>
                 </div>
                 {errors.confirmPassword && (
-                  <p className="text-destructive text-xs">{errors.confirmPassword}</p>
+                  <p className="text-destructive text-xs">
+                    {errors.confirmPassword}
+                  </p>
                 )}
               </div>
             )}
@@ -309,8 +323,10 @@ export default function Auth() {
             >
               {isLoading ? (
                 <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />
+              ) : mode === "signin" ? (
+                "Sign In"
               ) : (
-                mode === 'signin' ? 'Sign In' : 'Create Account'
+                "Create Account"
               )}
             </Button>
           </form>
@@ -318,7 +334,9 @@ export default function Auth() {
           {/* Divider */}
           <div className="flex items-center gap-4 my-8">
             <div className="flex-1 h-px bg-border" />
-            <span className="text-muted-foreground text-xs uppercase tracking-widest">or</span>
+            <span className="text-muted-foreground text-xs uppercase tracking-widest">
+              or
+            </span>
             <div className="flex-1 h-px bg-border" />
           </div>
 
@@ -350,7 +368,7 @@ export default function Auth() {
               </svg>
               <span>Continue with Google</span>
             </Button>
-
+            {/* 
             <Button
               type="button"
               onClick={signInWithApple}
@@ -361,19 +379,21 @@ export default function Auth() {
                 <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
               </svg>
               <span>Continue with Apple</span>
-            </Button>
+            </Button> */}
           </div>
 
           {/* Switch Mode */}
           <div className="mt-8 text-center">
             <p className="text-muted-foreground text-sm">
-              {mode === 'signin' ? "Don't have an account?" : 'Already have an account?'}
+              {mode === "signin"
+                ? "Don't have an account?"
+                : "Already have an account?"}
               <button
                 type="button"
                 onClick={switchMode}
                 className="ml-2 text-gold hover:text-gold-light transition-colors"
               >
-                {mode === 'signin' ? 'Sign Up' : 'Sign In'}
+                {mode === "signin" ? "Sign Up" : "Sign In"}
               </button>
             </p>
           </div>

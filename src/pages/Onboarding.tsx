@@ -104,34 +104,45 @@ export default function Onboarding() {
   };
 
   const handleCompleteOnboarding = async () => {
-    if (!user) return;
+  // Save to localStorage as backup
+  localStorage.setItem('modesta-pending-profile', JSON.stringify(userData));
+  
+  if (!user) {
+    // User not confirmed yet - data will be saved when they confirm email
+    console.log('User not authenticated yet, profile saved to localStorage');
+    return;
+  }
 
-    try {
-      const { error } = await completeOnboarding(user.id, {
-        full_name: userData.fullName,
-        country: userData.country,
-        city: userData.city,
-        brands: userData.brands,
-        hijab_style: userData.hijabStyle,
-        favorite_colors: userData.favoriteColors,
-        style_personality: userData.stylePersonality,
-      });
+  setIsLoading(true);
+  try {
+    const { error } = await completeOnboarding(user.id, {
+      full_name: userData.fullName,
+      country: userData.country,
+      city: userData.city,
+      brands: userData.brands,
+      hijab_style: userData.hijabStyle,
+      favorite_colors: userData.favoriteColors,
+      style_personality: userData.stylePersonality,
+    });
 
-      if (error) {
-        toast({
-          title: "Saving failed",
-          description: "Could not sync your data to the cloud.",
-          variant: "destructive"
-        });
-      }
-    } catch {
+    if (error) {
+      console.error('Error saving profile:', error);
       toast({
-        title: "Error",
-        description: "Unexpected error while saving data",
-        variant: "destructive"
+        title: "Profile save failed",
+        description: "Your preferences were saved locally and will sync later.",
+        variant: "destructive",
       });
+    } else {
+      // Clear localStorage on success
+      localStorage.removeItem('modesta-pending-profile');
     }
-  };
+  } catch (error) {
+    console.error('Error completing onboarding:', error);
+  } finally {
+    setIsLoading(false);
+  }
+};
+
 
   // --- FIX 2: Better nextStep flow ---
   const nextStep = async () => {

@@ -6,7 +6,11 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  signUp: (email: string, password: string, metadata?: { full_name?: string }) => Promise<{ error: Error | null }>;
+  signUp: (
+    email: string,
+    password: string,
+    metadata?: { full_name?: string }
+  ) => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
 }
@@ -19,16 +23,49 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Set up auth state listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        setLoading(false);
-      }
-    );
+    // 1️⃣ Auth state listener
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      setLoading(false);
 
-    // THEN check for existing session
+      // ✅ FIX: Sync pending profile after login / email confirmation
+      if (event === 'SIGNED_IN' && session?.user) {
+        setTimeout(() => {
+          const pendingProfile = localStorage.getItem('modesta-pending-profile');
+
+          if (pendingProfile) {
+            const userData = JSON.parse(pendingProfile);
+
+            supabase
+              .from('profile')
+              .upsert({
+                id: session.user.id,
+                full_name: userData.fullName,
+                country: userData.country,
+                city: userData.city,
+                brands: userData.brands,
+                hijab_style: userData.hijabStyle,
+                favorite_colors: userData.favoriteColors,
+                style_personality: userData.stylePersonality,
+                updated_at: new Date().toISOString(),
+              })
+              .then(({ error }) => {
+                if (!error) {
+                  localStorage.removeItem('modesta-pending-profile');
+                  console.log('✅ Pending profile synced successfully');
+                } else {
+                  console.error('❌ Failed to sync pending profile:', error);
+                }
+              });
+          }
+        }, 0);
+      }
+    });
+
+    // 2️⃣ Check existing session on load
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
@@ -38,9 +75,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => subscription.unsubscribe();
   }, []);
 
-  const signUp = async (email: string, password: string, metadata?: { full_name?: string }) => {
+  const signUp = async (
+    email: string,
+    password: string,
+    metadata?: { full_name?: string }
+  ) => {
     const redirectUrl = `${window.location.origin}/home`;
-    
+
     const { error } = await supabase.auth.signUp({
       email,
       password,
@@ -49,7 +90,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         data: metadata,
       },
     });
-    
+
     return { error: error as Error | null };
   };
 
@@ -58,7 +99,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       email,
       password,
     });
-    
+
     return { error: error as Error | null };
   };
 
@@ -67,7 +108,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signUp, signIn, signOut }}>
+    <AuthContext.Provider
+      value={{ user, session, loading, signUp, signIn, signOut }}
+    >
       {children}
     </AuthContext.Provider>
   );

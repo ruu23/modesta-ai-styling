@@ -9,7 +9,7 @@ export interface Profile {
   brands: string[];
   hijab_style: string;
   favorite_colors: string[];
-  style_personality: string[];
+  style_personality: string;
   avatar_url: string | null;
   created_at: string;
   updated_at: string;
@@ -54,19 +54,21 @@ export const useProfile = () => {
   ): Promise<{ error: Error | null }> => {
     const { error } = await supabase
       .from('profile')
-      .update({
+      .upsert({
+        id: userId,
         full_name: data.full_name,
         country: data.country,
         city: data.city,
-        brands: data.brands.join(', '),
-        hijab_styles: data.hijab_style,
-        preferred_colors: data.favorite_colors,
+        brands: data.brands,
+        hijab_style: data.hijab_style,
+        favorite_colors: data.favorite_colors,
         style_personality: data.style_personality,
-      })
-      .eq('id', userId);
+        updated_at: new Date().toISOString(),
+      });
 
     return { error: error as Error | null };
   };
+
 
   return { getProfile, updateProfile, completeOnboarding };
 };

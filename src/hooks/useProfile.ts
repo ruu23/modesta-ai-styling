@@ -10,6 +10,7 @@ export interface Profile {
   hijab_style: string;
   favorite_colors: string[];
   style_personality: string;
+  has_completed_onboarding: boolean;
   avatar_url: string | null;
   created_at: string;
   updated_at: string;
@@ -62,9 +63,14 @@ export const useProfile = () => {
         brands: data.brands,
         hijab_style: data.hijab_style,
         favorite_colors: data.favorite_colors,
+        has_completed_onboarding: true,
         style_personality: data.style_personality,
         updated_at: new Date().toISOString(),
       });
+      if (!error) {
+        // Also update local storage for an immediate UI response
+        localStorage.setItem('onboardingCompleted', 'true');
+      }
 
     return { error: error as Error | null };
   };

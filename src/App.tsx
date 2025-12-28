@@ -7,7 +7,7 @@ import { AnimatePresence } from "framer-motion";
 import { ThemeProvider } from "@/components/theme";
 import { AccessibilityProvider } from "@/components/accessibility";
 import { AuthProvider } from "@/hooks/useAuth";
-import { ProtectedRoute } from "@/components/auth";
+import { ProtectedRoute, EmailVerifiedGate } from "@/components/auth";
 import { LazyPage } from "@/components/ui/LazyLoad";
 import { 
   LazyCloset, 
@@ -19,6 +19,7 @@ import {
 import Index from "./pages/Index";
 import Onboarding from "./pages/Onboarding";
 import Auth from "./pages/Auth";
+import VerifyEmail from "./pages/VerifyEmail";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -39,8 +40,13 @@ function AnimatedRoutes() {
     <AnimatePresence mode="wait" initial={false}>
       <Routes location={location} key={location.pathname}>
         <Route path="/" element={<Onboarding />} />
-        <Route path="/onboarding" element={<Onboarding />} />
+        <Route path="/onboarding" element={
+          <EmailVerifiedGate>
+            <Onboarding />
+          </EmailVerifiedGate>
+        } />
         <Route path="/auth" element={<Auth />} />
+        <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/home" element={
           <ProtectedRoute>
             <Index />

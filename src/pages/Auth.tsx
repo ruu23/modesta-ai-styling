@@ -119,10 +119,11 @@ export default function Auth() {
           });
           return;
         }
-        toast({
-          title: "Account created",
-          description: "Please check your email to verify your account.",
-        });
+        // Store email for verification page
+        localStorage.setItem("pendingVerificationEmail", formData.email);
+        // Redirect to verify-email page
+        navigate("/verify-email");
+        return;
       } else {
         const { error } = await signIn(formData.email, formData.password);
         if (error) {

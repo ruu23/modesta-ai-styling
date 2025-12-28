@@ -18,7 +18,7 @@ import {
 
 export default function Onboarding() {
   const navigate = useNavigate();
-  const { signUp, signIn, user, loading } = useAuth();
+  const { signUp, signIn, user, loading, resetPassword } = useAuth();
   const { completeOnboarding } = useProfile();
   const { toast } = useToast();
 
@@ -30,7 +30,7 @@ export default function Onboarding() {
   const initialStep = stepFromUrl ? parseInt(stepFromUrl) : 0;
 
   const [currentStep, setCurrentStep] = useState(initialStep);
-  const [authMode, setAuthMode] = useState<'signup' | 'signin'>('signup');
+  const [authMode, setAuthMode] = useState<'signup' | 'signin' | 'forgot'>('signup');
 
   const [userData, setUserData] = useState<UserData>({
     fullName: '',
@@ -96,6 +96,26 @@ export default function Onboarding() {
         }
         navigate('/home');
       }
+    } catch {
+      toast({ title: "Error", description: "Unexpected error occurred", variant: "destructive" });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResetPassword = async (email: string) => {
+    setIsLoading(true);
+    try {
+      const { error } = await resetPassword(email);
+      if (error) {
+        toast({ title: "Reset failed", description: error.message, variant: "destructive" });
+        return;
+      }
+      toast({ 
+        title: "Check your email", 
+        description: "We've sent you a password reset link." 
+      });
+      setAuthMode('signin');
     } catch {
       toast({ title: "Error", description: "Unexpected error occurred", variant: "destructive" });
     } finally {
@@ -178,6 +198,7 @@ export default function Onboarding() {
             isLoading={isLoading}
             authMode={authMode}
             setAuthMode={setAuthMode}
+            onResetPassword={handleResetPassword}
           />
         )}
 

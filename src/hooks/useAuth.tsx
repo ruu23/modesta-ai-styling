@@ -6,6 +6,7 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
+  hasCompletedOnboarding: boolean; // Added this
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signUp: (email: string, password: string, metadata?: any) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
@@ -16,35 +17,58 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true); // Start with loading true
+  const [loading, setLoading] = useState(true);
+  const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(false);
 
   useEffect(() => {
-    // Set up auth state listener FIRST
+    // Helper function to fetch onboarding status
+    const fetchOnboardingStatus = async (userId: string) => {
+      const { data: profile } = await supabase
+        .from('profile')
+        .select('has_completed_onboarding')
+        .eq('id', userId)
+        .maybeSingle();
+      
+      setHasCompletedOnboarding(profile?.has_completed_onboarding ?? false);
+    };
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => { // Made this async
         setSession(session);
         setUser(session?.user ?? null);
+        
+        if (session?.user) {
+          await fetchOnboardingStatus(session.user.id);
+        } else {
+          setHasCompletedOnboarding(false);
+        }
+        
         setLoading(false);
 
-        // Handle pending profile data after sign in
         if (event === 'SIGNED_IN' && session?.user) {
           setTimeout(() => {
             const pendingData = localStorage.getItem('pendingProfileData');
             if (pendingData) {
               const profileData = JSON.parse(pendingData);
-              supabase.from('profiles')
-                .upsert({ id: session.user.id, ...profileData })
-                .then(() => localStorage.removeItem('pendingProfileData'));
+              // Ensure we use 'profile' singular to match your DB
+              supabase.from('profile')
+                .upsert({ id: session.user.id, ...profileData, has_completed_onboarding: true })
+                .then(() => {
+                  localStorage.removeItem('pendingProfileData');
+                  setHasCompletedOnboarding(true);
+                });
             }
           }, 0);
         }
       }
     );
 
-    // THEN check for existing session (this restores the session from localStorage)
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
+      if (session?.user) {
+        fetchOnboardingStatus(session.user.id);
+      }
       setLoading(false);
     });
 
@@ -68,19 +92,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error };
   };
 
-  
-
   const signOut = async () => {
+    localStorage.removeItem('onboardingCompleted');
     await supabase.auth.signOut();
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signIn, signUp, signOut }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      session, 
+      loading, 
+      hasCompletedOnboarding, // Exposed to the app
+      signIn, 
+      signUp, 
+      signOut 
+    }}>
       {children}
     </AuthContext.Provider>
   );
 }
-
 
 export function useAuth() {
   const context = useContext(AuthContext);

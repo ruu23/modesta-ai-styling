@@ -38,8 +38,9 @@ interface StepProps {
 interface BasicInfoStepProps
   extends Pick<StepProps, "userData" | "updateUserData" | "nextStep"> {
   isLoading?: boolean;
-  authMode?: "signup" | "signin";
-  setAuthMode?: (mode: "signup" | "signin") => void;
+  authMode?: "signup" | "signin" | "forgot";
+  setAuthMode?: (mode: "signup" | "signin" | "forgot") => void;
+  onResetPassword?: (email: string) => Promise<void>;
 }
 
 // Constants
@@ -374,19 +375,37 @@ export const BasicInfoStep = ({
   isLoading = false,
   authMode = "signup",
   setAuthMode,
+  onResetPassword,
 }: BasicInfoStepProps) => {
   const isSignUp = authMode === "signup";
+  const isForgot = authMode === "forgot";
+
+  const getTitle = () => {
+    if (isForgot) return "Reset Password";
+    if (isSignUp) return "Create Account";
+    return "Welcome Back";
+  };
+
+  const getSubtitle = () => {
+    if (isForgot) return "Enter your email to receive a reset link";
+    if (isSignUp) return "Let's get to know you better";
+    return "Sign in to continue";
+  };
+
+  const handleSubmit = async () => {
+    if (isForgot && onResetPassword) {
+      await onResetPassword(userData.email);
+    } else {
+      nextStep();
+    }
+  };
 
   return (
     <motion.div {...fadeInUp} className="min-h-screen bg-background px-6 py-12">
       <div className="max-w-md mx-auto">
         <div className="text-center mb-12">
-          <h2 className="font-serif text-3xl mb-3">
-            {isSignUp ? "Create Account" : "Welcome Back"}
-          </h2>
-          <p className="text-muted-foreground">
-            {isSignUp ? "Let's get to know you better" : "Sign in to continue"}
-          </p>
+          <h2 className="font-serif text-3xl mb-3">{getTitle()}</h2>
+          <p className="text-muted-foreground">{getSubtitle()}</p>
           <div className="w-8 h-px bg-gold mx-auto mt-6" />
         </div>
         <div className="space-y-6">
@@ -416,25 +435,27 @@ export const BasicInfoStep = ({
               placeholder="your@email.com"
             />
           </div>
-          <div>
-            <label className="block text-sm tracking-wider mb-2 text-muted-foreground">
-              Password
-            </label>
-            <Input
-              type="password"
-              value={userData.password}
-              onChange={(e) => updateUserData("password", e.target.value)}
-              className="h-14 border-border/50 focus:border-foreground"
-              placeholder={
-                isSignUp ? "Create a password" : "Enter your password"
-              }
-            />
-            {isSignUp && (
-              <p className="text-xs text-muted-foreground mt-2">
-                Password must be at least 6 characters
-              </p>
-            )}
-          </div>
+          {!isForgot && (
+            <div>
+              <label className="block text-sm tracking-wider mb-2 text-muted-foreground">
+                Password
+              </label>
+              <Input
+                type="password"
+                value={userData.password}
+                onChange={(e) => updateUserData("password", e.target.value)}
+                className="h-14 border-border/50 focus:border-foreground"
+                placeholder={
+                  isSignUp ? "Create a password" : "Enter your password"
+                }
+              />
+              {isSignUp && (
+                <p className="text-xs text-muted-foreground mt-2">
+                  Password must be at least 6 characters
+                </p>
+              )}
+            </div>
+          )}
           {isSignUp && (
             <div>
               <label className="block text-sm tracking-wider mb-2 text-muted-foreground">
@@ -463,8 +484,19 @@ export const BasicInfoStep = ({
             </div>
           )}
 
+          {!isSignUp && !isForgot && setAuthMode && (
+            <div className="text-right">
+              <button
+                onClick={() => setAuthMode("forgot")}
+                className="text-sm text-muted-foreground hover:text-foreground underline"
+              >
+                Forgot password?
+              </button>
+            </div>
+          )}
+
           <Button
-            onClick={nextStep}
+            onClick={handleSubmit}
             disabled={
               isLoading ||
               !userData.email ||
@@ -472,15 +504,17 @@ export const BasicInfoStep = ({
                 (!userData.fullName ||
                   userData.password.length < 6 ||
                   userData.password !== userData.confirmPassword)) ||
-              (!isSignUp && !userData.password)
+              (!isSignUp && !isForgot && !userData.password)
             }
             className="w-full h-14 mt-8"
           >
             {isLoading ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                {isSignUp ? "Creating account..." : "Signing in..."}
+                {isForgot ? "Sending reset link..." : isSignUp ? "Creating account..." : "Signing in..."}
               </>
+            ) : isForgot ? (
+              "Send Reset Link"
             ) : isSignUp ? (
               "Create Account"
             ) : (
@@ -490,13 +524,37 @@ export const BasicInfoStep = ({
 
           {setAuthMode && (
             <p className="text-center text-sm text-muted-foreground mt-4">
-              {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
-              <button
-                onClick={() => setAuthMode(isSignUp ? "signin" : "signup")}
-                className="text-foreground underline hover:no-underline"
-              >
-                {isSignUp ? "Sign in" : "Sign up"}
-              </button>
+              {isForgot ? (
+                <>
+                  Remember your password?{" "}
+                  <button
+                    onClick={() => setAuthMode("signin")}
+                    className="text-foreground underline hover:no-underline"
+                  >
+                    Sign in
+                  </button>
+                </>
+              ) : isSignUp ? (
+                <>
+                  Already have an account?{" "}
+                  <button
+                    onClick={() => setAuthMode("signin")}
+                    className="text-foreground underline hover:no-underline"
+                  >
+                    Sign in
+                  </button>
+                </>
+              ) : (
+                <>
+                  Don't have an account?{" "}
+                  <button
+                    onClick={() => setAuthMode("signup")}
+                    className="text-foreground underline hover:no-underline"
+                  >
+                    Sign up
+                  </button>
+                </>
+              )}
             </p>
           )}
         </div>

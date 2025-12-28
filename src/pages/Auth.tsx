@@ -43,9 +43,9 @@ export default function Auth() {
     confirmPassword: "",
   });
 
-  // Redirect if already authenticated
+  // Redirect if already authenticated and email is verified
   useEffect(() => {
-    if (!loading && user) {
+    if (!loading && user?.email_confirmed_at) {
       navigate("/home");
     }
   }, [user, loading, navigate]);

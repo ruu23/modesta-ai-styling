@@ -795,7 +795,7 @@ export const CompletionPage = ({
   onNavigate,
 }: {
   userData: UserData;
-  onNavigate: (path: string) => void;
+  onNavigate: (path: string, options?: { replace: boolean }) => void; // Update type
 }) => (
   <motion.div
     {...fadeInUp}
@@ -818,13 +818,14 @@ export const CompletionPage = ({
       </p>
       <div className="w-16 h-px bg-gold mx-auto mb-8" />
       <div className="space-y-4">
-        <Button className="w-full h-14" onClick={() => onNavigate("/home")}>
+        {/* Update these two buttons to include { replace: true } */}
+        <Button className="w-full h-14" onClick={() => onNavigate("/home", { replace: true })}>
           Go to Dashboard
         </Button>
         <Button
           variant="outline"
           className="w-full h-14"
-          onClick={() => onNavigate("/closet")}
+          onClick={() => onNavigate("/closet", { replace: true })}
         >
           Add Items to Closet
         </Button>

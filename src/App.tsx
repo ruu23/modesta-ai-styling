@@ -56,8 +56,16 @@ function AnimatedRoutes() {
             )
           } 
         />
-        
-        <Route path="/onboarding" element={<Onboarding />} />
+        <Route 
+          path="/onboarding" 
+          element={
+            hasCompletedOnboarding ? (
+              <Navigate to="/home" replace /> 
+            ) : (
+              <Onboarding />
+            )
+          } 
+        />
         <Route path="/auth" element={<Auth />} />
         
         <Route

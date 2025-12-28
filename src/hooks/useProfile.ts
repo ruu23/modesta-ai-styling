@@ -38,7 +38,10 @@ export const useProfile = () => {
   ): Promise<{ error: Error | null }> => {
     const { error } = await supabase
       .from('profile')
-      .update(updates)
+      .update({
+        ...updates,
+        updated_at: new Date().toISOString(),
+      })
       .eq('id', userId);
 
     return { error: error as Error | null };
@@ -56,17 +59,22 @@ export const useProfile = () => {
       style_personality: string[];
     }
   ): Promise<{ error: Error | null }> => {
+    // 1. Perform the UPSERT to Supabase
     const { error } = await supabase
       .from('profile')
       .upsert({
         id: userId,
         ...data,
-        has_completed_onboarding: true, // 🔒 lock onboarding
+        has_completed_onboarding: true,
         updated_at: new Date().toISOString(),
       });
 
     if (!error) {
-      // 🚀 instant UX (no waiting for DB)
+      // 2. Clean up the PENDING data (from useAuth and Onboarding)
+      // We use the same key here as we do in useAuth to stay consistent
+      localStorage.removeItem('modesta-pending-profile');
+      
+      // 3. Mark completion locally for instant Route Guard reaction
       localStorage.setItem('onboardingCompleted', 'true');
     }
 

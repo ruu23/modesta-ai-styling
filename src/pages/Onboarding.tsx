@@ -112,8 +112,9 @@ export default function Onboarding() {
         country: userData.country,
         city: userData.city,
         brands: userData.brands,
-        hijab_styles: userData.hijabStyle,
-        preferred_colors: userData.favoriteColors,
+        hijab_style: userData.hijabStyle,
+        favorite_colors: userData.favoriteColors,
+        style_personality: userData.stylePersonality,
       });
 
       if (error) {

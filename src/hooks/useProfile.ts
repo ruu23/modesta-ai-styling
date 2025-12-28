@@ -7,8 +7,9 @@ export interface Profile {
   country: string | null;
   city: string | null;
   brands: string[];
-  hijab_styles: string;
-  preferred_colors: string[];
+  hijab_style: string;
+  favorite_colors: string[];
+  style_personality: string[];
   avatar_url: string | null;
   created_at: string;
   updated_at: string;
@@ -46,8 +47,9 @@ export const useProfile = () => {
       country: string;
       city: string;
       brands: string[];
-      hijab_styles: string;
-      preferred_colors: string[];
+      hijab_style: string;
+      favorite_colors: string[];
+      style_personality: string[];
     }
   ): Promise<{ error: Error | null }> => {
     const { error } = await supabase
@@ -57,8 +59,9 @@ export const useProfile = () => {
         country: data.country,
         city: data.city,
         brands: data.brands.join(', '),
-        hijab_styles: data.hijab_styles,
-        preferred_colors: data.preferred_colors,
+        hijab_styles: data.hijab_style,
+        preferred_colors: data.favorite_colors,
+        style_personality: data.style_personality,
       })
       .eq('id', userId);
 

@@ -20,6 +20,8 @@ import Index from "./pages/Index";
 import Onboarding from "./pages/Onboarding";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import { OnboardingGate } from '@/components/auth/OnboardingGate';
+
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -41,11 +43,16 @@ function AnimatedRoutes() {
         <Route path="/" element={<Onboarding />} />
         <Route path="/onboarding" element={<Onboarding />} />
         <Route path="/auth" element={<Auth />} />
-        <Route path="/home" element={
-          <ProtectedRoute>
-            <Index />
-          </ProtectedRoute>
-        } />
+        <Route
+            path="/home"
+            element={
+              <ProtectedRoute>
+                <OnboardingGate>
+                  <Index />
+                </OnboardingGate>
+              </ProtectedRoute>
+            }
+          />
         <Route 
           path="/closet" 
           element={

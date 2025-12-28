@@ -7,7 +7,7 @@ export interface Profile {
   country: string | null;
   city: string | null;
   brands: string[];
-  hijab_styles: string[];
+  hijab_styles: string;
   preferred_colors: string[];
   avatar_url: string | null;
   created_at: string;
@@ -17,7 +17,7 @@ export interface Profile {
 export const useProfile = () => {
   const getProfile = async (userId: string): Promise<Profile | null> => {
     const { data, error } = await supabase
-      .from('profiles')
+      .from('profile')
       .select('*')
       .eq('id', userId)
       .maybeSingle();
@@ -32,7 +32,7 @@ export const useProfile = () => {
 
   const updateProfile = async (userId: string, updates: Partial<Profile>): Promise<{ error: Error | null }> => {
     const { error } = await supabase
-      .from('profiles')
+      .from('profile')
       .update(updates)
       .eq('id', userId);
 
@@ -46,17 +46,17 @@ export const useProfile = () => {
       country: string;
       city: string;
       brands: string[];
-      hijab_styles: string[];
+      hijab_styles: string;
       preferred_colors: string[];
     }
   ): Promise<{ error: Error | null }> => {
     const { error } = await supabase
-      .from('profiles')
+      .from('profile')
       .update({
         full_name: data.full_name,
         country: data.country,
         city: data.city,
-        brands: data.brands,
+        brands: data.brands.join(', '),
         hijab_styles: data.hijab_styles,
         preferred_colors: data.preferred_colors,
       })

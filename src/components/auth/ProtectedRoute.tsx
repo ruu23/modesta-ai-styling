@@ -22,5 +22,10 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
+  // Block unverified users from accessing the app
+  if (!user.email_confirmed_at) {
+    return <Navigate to="/verify-email" replace />;
+  }
+
   return <>{children}</>;
 }

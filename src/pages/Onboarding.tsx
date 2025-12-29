@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'; 
+import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
@@ -52,35 +52,17 @@ export default function Onboarding() {
     occasions: []
   });
 
-  useEffect(() => {
-    const handlePopState = () => {
-      setCurrentStep(0);
-      setHasAutoJumped(true); // Prevent auto-jump to step 2
-    };
-
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
-  }, []);
-
   // --- FIX 1: Enhanced Google Sync + block unverified users ---
   useEffect(() => {
     if (loading) return;
 
-    // If signed in and email verified, fill user data
-    if (user?.email_confirmed_at) {
-      setUserData((prev) => ({
-        ...prev,
-        fullName: prev.fullName || user.user_metadata?.full_name || '',
-        email: prev.email || user.email || '',
-      }));
-
-      // Only auto-jump if user came from OAuth redirect (not browser back)
-      const isOAuthRedirect = location.search.includes('access_token') || 
-                              location.search.includes('code');
-      if (!hasAutoJumped && isOAuthRedirect) {
-        setCurrentStep((prev) => (prev < 2 ? 2 : prev));
-        setHasAutoJumped(true);
+    // If signed in but email not verified, force verify-email flow
+    if (user && !user.email_confirmed_at) {
+      if (user.email) {
+        localStorage.setItem('pendingVerificationEmail', user.email);
       }
+      navigate('/verify-email', { replace: true });
+      return;
     }
 
     // When coming back from /home via browser back, show the first onboarding screen
@@ -91,7 +73,18 @@ export default function Onboarding() {
       return;
     }
 
-    // ✅ Removed duplicate block here
+    if (user?.email_confirmed_at) {
+      setUserData((prev) => ({
+        ...prev,
+        fullName: prev.fullName || user.user_metadata?.full_name || '',
+        email: prev.email || user.email || '',
+      }));
+
+      if (!hasAutoJumped) {
+        setCurrentStep((prev) => (prev < 2 ? 2 : prev));
+        setHasAutoJumped(true);
+      }
+    }
   }, [user, loading, hasAutoJumped, forceStart, navigate]);
 
   const updateUserData = (field: keyof UserData, value: string) => {
@@ -159,51 +152,52 @@ export default function Onboarding() {
   };
 
   const handleCompleteOnboarding = async () => {
-    // Save to localStorage as backup
-    localStorage.setItem('modesta-pending-profile', JSON.stringify(userData));
+  // Save to localStorage as backup
+  localStorage.setItem('modesta-pending-profile', JSON.stringify(userData));
 
-    // Only allow saving user data after email confirmed
-    if (!user?.email_confirmed_at) {
-      if (user?.email) {
-        localStorage.setItem('pendingVerificationEmail', user.email);
-      }
+  // Only allow saving user data after email confirmed
+  if (!user?.email_confirmed_at) {
+    if (user?.email) {
+      localStorage.setItem('pendingVerificationEmail', user.email);
+    }
+    toast({
+      title: 'Verify your email',
+      description: 'Please verify your email before saving your profile.',
+    });
+    navigate('/verify-email');
+    return;
+  }
+
+  setIsLoading(true);
+  try {
+    const { error } = await completeOnboarding(user.id, {
+      full_name: userData.fullName,
+      country: userData.country,
+      city: userData.city,
+      brands: userData.brands,
+      hijab_style: userData.hijabStyle,
+      favorite_colors: userData.favoriteColors,
+      style_personality: userData.stylePersonality,
+    });
+
+    if (error) {
+      console.error('Error saving profile:', error);
       toast({
-        title: 'Verify your email',
-        description: 'Please verify your email before saving your profile.',
+        title: "Profile save failed",
+        description: "Your preferences were saved locally and will sync later.",
+        variant: "destructive",
       });
-      navigate('/verify-email');
-      return;
+    } else {
+      // Clear localStorage on success
+      localStorage.removeItem('modesta-pending-profile');
     }
+  } catch (error) {
+    console.error('Error completing onboarding:', error);
+  } finally {
+    setIsLoading(false);
+  }
+};
 
-    setIsLoading(true);
-    try {
-      const { error } = await completeOnboarding(user.id, {
-        full_name: userData.fullName,
-        country: userData.country,
-        city: userData.city,
-        brands: userData.brands,
-        hijab_style: userData.hijabStyle,
-        favorite_colors: userData.favoriteColors,
-        style_personality: userData.stylePersonality,
-      });
-
-      if (error) {
-        console.error('Error saving profile:', error);
-        toast({
-          title: "Profile save failed",
-          description: "Your preferences were saved locally and will sync later.",
-          variant: "destructive",
-        });
-      } else {
-        // Clear localStorage on success
-        localStorage.removeItem('modesta-pending-profile');
-      }
-    } catch (error) {
-      console.error('Error completing onboarding:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   // --- FIX 2: Better nextStep flow ---
   const nextStep = async () => {
@@ -271,7 +265,9 @@ export default function Onboarding() {
 
         {currentStep === 7 && (
           <CompletionPage key="complete" userData={userData} onNavigate={(path) => {
-            navigate(path, { replace: true });
+            // First navigate to / to reset history, then to destination
+            navigate('/', { replace: true, state: { forceStart: true } });
+            navigate(path);
           }} />
         )}
       </AnimatePresence>

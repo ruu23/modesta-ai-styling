@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
@@ -18,6 +18,11 @@ import {
 
 export default function Onboarding() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const forceStart = Boolean(
+    (location.state as { forceStart?: boolean } | null)?.forceStart
+  );
+
   const { signUp, signIn, user, loading, resetPassword } = useAuth();
   const { completeOnboarding } = useProfile();
   const { toast } = useToast();
@@ -25,9 +30,9 @@ export default function Onboarding() {
   const [isLoading, setIsLoading] = useState(false);
   const [hasAutoJumped, setHasAutoJumped] = useState(false);
 
-  const searchParams = new URLSearchParams(window.location.search);
+  const searchParams = new URLSearchParams(location.search);
   const stepFromUrl = searchParams.get('step');
-  const initialStep = stepFromUrl ? parseInt(stepFromUrl) : 0;
+  const initialStep = forceStart ? 0 : stepFromUrl ? parseInt(stepFromUrl) : 0;
 
   const [currentStep, setCurrentStep] = useState(initialStep);
   const [authMode, setAuthMode] = useState<'signup' | 'signin' | 'forgot'>('signup');
@@ -60,6 +65,14 @@ export default function Onboarding() {
       return;
     }
 
+    // When coming back from /home via browser back, show the first onboarding screen
+    // (don't auto-jump authenticated users to later steps).
+    if (forceStart && !hasAutoJumped) {
+      setCurrentStep(0);
+      setHasAutoJumped(true);
+      return;
+    }
+
     if (user?.email_confirmed_at) {
       setUserData((prev) => ({
         ...prev,
@@ -72,7 +85,7 @@ export default function Onboarding() {
         setHasAutoJumped(true);
       }
     }
-  }, [user, loading, hasAutoJumped, navigate]);
+  }, [user, loading, hasAutoJumped, forceStart, navigate]);
 
   const updateUserData = (field: keyof UserData, value: string) => {
     setUserData(prev => ({ ...prev, [field]: value }));
@@ -253,7 +266,7 @@ export default function Onboarding() {
         {currentStep === 7 && (
           <CompletionPage key="complete" userData={userData} onNavigate={(path) => {
             // First navigate to / to reset history, then to destination
-            navigate('/', { replace: true });
+            navigate('/', { replace: true, state: { forceStart: true } });
             navigate(path);
           }} />
         )}

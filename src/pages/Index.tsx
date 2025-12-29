@@ -7,6 +7,7 @@ import { motion } from 'framer-motion';
 import { useWeather } from '@/hooks/useWeather';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { useProfile } from '@/hooks/useProfile';
 interface UserData {
   fullName: string;
   email: string;
@@ -210,7 +211,9 @@ const WeatherWidget = () => {
 
 export default memo(function Index() {
   const [userData, setUserData] = useState<UserData | null>(null);
+  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
   const { user, signOut } = useAuth();
+  const { getProfile } = useProfile();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -224,15 +227,68 @@ export default memo(function Index() {
   };
 
   useEffect(() => {
-    const stored = localStorage.getItem('modesta-user');
-    if (stored) {
-      try {
-        setUserData(JSON.parse(stored));
-      } catch (e) {
-        console.error('Failed to parse user data');
+    const loadProfile = async () => {
+      setIsLoadingProfile(true);
+
+      // Try fetching from Supabase first
+      if (user?.id) {
+        const profile = await getProfile(user.id);
+        if (profile) {
+          setUserData({
+            fullName: profile.full_name || user.user_metadata?.full_name || '',
+            email: profile.email || user.email || '',
+            country: profile.country || '',
+            city: profile.city || '',
+            brands: profile.brands || [],
+            favoriteColors: profile.favorite_colors || [],
+            stylePersonality: Array.isArray(profile.style_personality)
+              ? profile.style_personality
+              : profile.style_personality
+              ? [profile.style_personality]
+              : [],
+            hijabStyle: profile.hijab_style || '',
+          });
+          setIsLoadingProfile(false);
+          return;
+        }
       }
-    }
-  }, []);
+
+      // Fallback to localStorage
+      const stored = localStorage.getItem('modesta-pending-profile') || localStorage.getItem('modesta-user');
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          setUserData({
+            fullName: parsed.fullName || user?.user_metadata?.full_name || '',
+            email: parsed.email || user?.email || '',
+            country: parsed.country || '',
+            city: parsed.city || '',
+            brands: parsed.brands || [],
+            favoriteColors: parsed.favoriteColors || [],
+            stylePersonality: parsed.stylePersonality || [],
+            hijabStyle: parsed.hijabStyle || '',
+          });
+        } catch {
+          console.error('Failed to parse user data');
+        }
+      } else if (user) {
+        // Fallback to auth metadata
+        setUserData({
+          fullName: user.user_metadata?.full_name || '',
+          email: user.email || '',
+          country: '',
+          city: '',
+          brands: [],
+          favoriteColors: [],
+          stylePersonality: [],
+          hijabStyle: '',
+        });
+      }
+      setIsLoadingProfile(false);
+    };
+
+    loadProfile();
+  }, [user, getProfile]);
 
   return (
     <AppLayout showBottomNav={false}>
@@ -266,14 +322,18 @@ export default memo(function Index() {
             <div className="flex items-center gap-4">
               {user ? (
                 <>
-                  {userData && (
+                  {isLoadingProfile ? (
+                    <span className="text-[10px] uppercase tracking-[0.15em] text-muted-foreground">
+                      Loading...
+                    </span>
+                  ) : userData?.fullName ? (
                     <Link 
                       to="/settings"
                       className="text-[10px] uppercase tracking-[0.15em] text-foreground hover:text-gold transition-colors duration-300"
                     >
                       Hi, {userData.fullName.split(' ')[0]}
                     </Link>
-                  )}
+                  ) : null}
                   <button
                     onClick={handleLogout}
                     className="text-[10px] uppercase tracking-[0.15em] text-muted-foreground hover:text-foreground transition-colors duration-300 flex items-center gap-1.5"

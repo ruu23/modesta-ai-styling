@@ -251,7 +251,11 @@ export default function Onboarding() {
         )}
 
         {currentStep === 7 && (
-          <CompletionPage key="complete" userData={userData} onNavigate={navigate} />
+          <CompletionPage key="complete" userData={userData} onNavigate={(path) => {
+            // First navigate to / to reset history, then to destination
+            navigate('/', { replace: true });
+            navigate(path);
+          }} />
         )}
       </AnimatePresence>
     </div>

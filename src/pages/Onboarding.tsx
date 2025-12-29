@@ -47,21 +47,32 @@ export default function Onboarding() {
     occasions: []
   });
 
-  // --- FIX 1: Enhanced Google Sync ---
+  // --- FIX 1: Enhanced Google Sync + block unverified users ---
   useEffect(() => {
-    if (!loading && user) {
-      setUserData(prev => ({
+    if (loading) return;
+
+    // If signed in but email not verified, force verify-email flow
+    if (user && !user.email_confirmed_at) {
+      if (user.email) {
+        localStorage.setItem('pendingVerificationEmail', user.email);
+      }
+      navigate('/verify-email', { replace: true });
+      return;
+    }
+
+    if (user?.email_confirmed_at) {
+      setUserData((prev) => ({
         ...prev,
         fullName: prev.fullName || user.user_metadata?.full_name || '',
         email: prev.email || user.email || '',
       }));
 
-      if (currentStep < 2 && !hasAutoJumped) {
-        setCurrentStep(2);
+      if (!hasAutoJumped) {
+        setCurrentStep((prev) => (prev < 2 ? 2 : prev));
         setHasAutoJumped(true);
       }
     }
-  }, [user, loading, hasAutoJumped]); // ❗ removed currentStep to avoid loop
+  }, [user, loading, hasAutoJumped, navigate]);
 
   const updateUserData = (field: keyof UserData, value: string) => {
     setUserData(prev => ({ ...prev, [field]: value }));
@@ -87,7 +98,11 @@ export default function Onboarding() {
           toast({ title: "Sign up failed", description: error.message, variant: "destructive" });
           return;
         }
-        setCurrentStep(prev => prev + 1);
+
+        // After signup, always redirect to verify-email
+        localStorage.setItem('pendingVerificationEmail', userData.email);
+        navigate('/verify-email');
+        return;
       } else {
         const { error } = await signIn(userData.email, userData.password);
         if (error) {
@@ -126,10 +141,17 @@ export default function Onboarding() {
   const handleCompleteOnboarding = async () => {
   // Save to localStorage as backup
   localStorage.setItem('modesta-pending-profile', JSON.stringify(userData));
-  
-  if (!user) {
-    // User not confirmed yet - data will be saved when they confirm email
-    console.log('User not authenticated yet, profile saved to localStorage');
+
+  // Only allow saving user data after email confirmed
+  if (!user?.email_confirmed_at) {
+    if (user?.email) {
+      localStorage.setItem('pendingVerificationEmail', user.email);
+    }
+    toast({
+      title: 'Verify your email',
+      description: 'Please verify your email before saving your profile.',
+    });
+    navigate('/verify-email');
     return;
   }
 

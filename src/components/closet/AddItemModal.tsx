@@ -37,7 +37,7 @@ interface AddItemModalProps {
     name: string;
     images: string[];
     category: Category;
-    colors: string[];
+    color: string[];
     brand: string;
     size: string;
     price: number;

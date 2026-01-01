@@ -27,7 +27,7 @@ import {
   CATEGORIES, 
   OCCASIONS, 
   SEASONS, 
-  COLORS 
+  COLOR 
 } from '@/types/closet';
 
 interface AddItemModalProps {
@@ -58,7 +58,7 @@ export function AddItemModal({ isOpen, onClose, onAdd }: AddItemModalProps) {
   const [images, setImages] = useState<string[]>([]);
   const [imageUrl, setImageUrl] = useState('');
   const [category, setCategory] = useState('');
-  const [colors, setColors] = useState<string[]>([]);
+  const [color, setColor] = useState<string[]>([]);
   const [brand, setBrand] = useState('');
   const [size, setSize] = useState('');
   const [price, setPrice] = useState('');
@@ -133,7 +133,7 @@ export function AddItemModal({ isOpen, onClose, onAdd }: AddItemModalProps) {
         setAiTags(analysis);
 
         const allowedCategoryValues = new Set(CATEGORIES.map((c) => c.value));
-        const allowedColorValues = new Set(COLORS.map((c) => c.value));
+        const allowedColorValues = new Set(COLOR.map((c) => c.value));
         const allowedOccasionValues = new Set(OCCASIONS.map((o) => o.value));
         const allowedSeasonValues = new Set(SEASONS.map((s) => s.value));
 
@@ -173,7 +173,7 @@ export function AddItemModal({ isOpen, onClose, onAdd }: AddItemModalProps) {
 
         // Auto-fill form fields from AI analysis (validated against allowed values)
         if (normalizedCategory && !category) setCategory(normalizedCategory);
-        if (normalizedColor && colors.length === 0) setColors([normalizedColor]);
+        if (normalizedColor && color.length === 0) setColor([normalizedColor]);
         if (normalizedBrand && normalizedBrand !== 'Unknown' && !brand) setBrand(normalizedBrand);
         if (normalizedName && !name) setName(normalizedName);
         if (normalizedPattern && !pattern) setPattern(normalizedPattern);
@@ -256,7 +256,7 @@ export function AddItemModal({ isOpen, onClose, onAdd }: AddItemModalProps) {
   };
 
   const toggleColor = (color: string) => {
-    setColors(prev => 
+    setColor(prev => 
       prev.includes(color) ? prev.filter(c => c !== color) : [...prev, color]
     );
   };
@@ -287,7 +287,7 @@ export function AddItemModal({ isOpen, onClose, onAdd }: AddItemModalProps) {
       name,
       images,
       category: category as Category,
-      colors,
+      color,
       brand,
       size,
       price: parseFloat(price) || 0,
@@ -303,7 +303,7 @@ export function AddItemModal({ isOpen, onClose, onAdd }: AddItemModalProps) {
     setImages([]);
     setImageUrl('');
     setCategory('');
-    setColors([]);
+    setColor([]);
     setBrand('');
     setSize('');
     setPrice('');
@@ -535,17 +535,17 @@ export function AddItemModal({ isOpen, onClose, onAdd }: AddItemModalProps) {
               </div>
             </div>
 
-            {/* Colors */}
+            {/* Color */}
             <div>
-              <Label>Colors</Label>
+              <Label>Color</Label>
               <div className="flex flex-wrap gap-2 mt-2">
-                {COLORS.map(({ value, label, hex }) => (
+                {COLOR.map(({ value, label, hex }) => (
                   <button
                     key={value}
                     type="button"
                     onClick={() => toggleColor(value)}
                     className={`w-8 h-8 rounded-full border-2 transition-all ${
-                      colors.includes(value)
+                      color.includes(value)
                         ? 'border-primary scale-110'
                         : 'border-border hover:border-muted-foreground'
                     }`}

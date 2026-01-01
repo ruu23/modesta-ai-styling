@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { X, Upload, Camera, Loader2 } from 'lucide-react';
+import { X, Upload, Camera, Loader2, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -18,6 +18,8 @@ import {
 } from '@/components/ui/select';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useStorage } from '@/hooks/useStorage';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 import { 
   Category, 
   Occasion, 
@@ -43,17 +45,19 @@ interface AddItemModalProps {
     seasons: Season[];
     pattern: string;
     purchaseDate: string;
+    tags?: Record<string, unknown>;
   }) => void;
 }
 
 export function AddItemModal({ isOpen, onClose, onAdd }: AddItemModalProps) {
   const { uploadImage, isUploading } = useStorage();
+  const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [name, setName] = useState('');
   const [images, setImages] = useState<string[]>([]);
   const [imageUrl, setImageUrl] = useState('');
-  const [category, setCategory] = useState<Category | ''>('');
+  const [category, setCategory] = useState('');
   const [colors, setColors] = useState<string[]>([]);
   const [brand, setBrand] = useState('');
   const [size, setSize] = useState('');
@@ -62,20 +66,133 @@ export function AddItemModal({ isOpen, onClose, onAdd }: AddItemModalProps) {
   const [seasons, setSeasons] = useState<Season[]>([]);
   const [pattern, setPattern] = useState('');
   const [purchaseDate, setPurchaseDate] = useState('');
+  const [aiTags, setAiTags] = useState<Record<string, unknown> | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string>('');
+
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
     const file = files[0];
-    const url = await uploadImage(file);
-    if (url) {
-      setImages(prev => [...prev, url]);
-    }
+    setSelectedFile(file);
     
-    // Reset input
+    // Create preview
+    const preview = URL.createObjectURL(file);
+    setPreviewUrl(preview);
+    
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
+    }
+  };
+
+  const processAndUpload = async () => {
+    if (!selectedFile) {
+      toast({
+        title: "No image selected",
+        description: "Please select an image first.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsProcessing(true);
+
+    try {
+      const base64 = await fileToBase64(selectedFile);
+
+      // Step 1: Analyze the image with AI
+      toast({
+        title: "Analyzing image...",
+        description: "AI is analyzing your clothing item.",
+      });
+
+      const { data: analysisData, error: analysisError } = await supabase.functions.invoke('analyze-clothing', {
+        body: {
+          imageBase64: base64,
+          category: category || 'unknown',
+          color: colors[0] || 'unknown',
+          brand: brand || 'unknown',
+        },
+      });
+
+      if (analysisError) {
+        console.error('Analysis error:', analysisError);
+      } else if (analysisData?.tags) {
+        setAiTags(analysisData.tags);
+        
+        // Auto-fill pattern if detected
+        if (analysisData.tags.pattern && !pattern) {
+          setPattern(analysisData.tags.pattern);
+        }
+        
+        toast({
+          title: "Analysis complete!",
+          description: "AI tags have been generated.",
+        });
+      }
+
+      // Step 2: Process image with white background
+      toast({
+        title: "Processing image...",
+        description: "Creating professional product photo.",
+      });
+
+      const { data: processData, error: processError } = await supabase.functions.invoke('process-clothing-image', {
+        body: { imageBase64: base64 },
+      });
+
+      let finalImageUrl: string;
+
+      if (processError || !processData?.processedImage) {
+        console.error('Image processing error:', processError);
+        // Fallback: upload original image
+        const url = await uploadImage(selectedFile);
+        if (!url) throw new Error('Failed to upload image');
+        finalImageUrl = url;
+      } else {
+        // Upload processed image
+        const processedBase64 = processData.processedImage;
+        
+        // Convert base64 to blob
+        const base64Data = processedBase64.replace(/^data:image\/\w+;base64,/, '');
+        const binaryData = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
+        const blob = new Blob([binaryData], { type: 'image/png' });
+        const processedFile = new File([blob], 'processed-clothing.png', { type: 'image/png' });
+        
+        const url = await uploadImage(processedFile);
+        if (!url) throw new Error('Failed to upload processed image');
+        finalImageUrl = url;
+      }
+
+      setImages(prev => [...prev, finalImageUrl]);
+      setSelectedFile(null);
+      setPreviewUrl('');
+
+      toast({
+        title: "Image ready!",
+        description: "Your clothing item has been processed and uploaded.",
+      });
+
+    } catch (error) {
+      console.error('Processing error:', error);
+      toast({
+        title: "Processing failed",
+        description: "There was an error processing your image. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -123,6 +240,7 @@ export function AddItemModal({ isOpen, onClose, onAdd }: AddItemModalProps) {
       seasons,
       pattern,
       purchaseDate: purchaseDate || new Date().toISOString().split('T')[0],
+      tags: aiTags || undefined,
     });
 
     // Reset form
@@ -138,102 +256,154 @@ export function AddItemModal({ isOpen, onClose, onAdd }: AddItemModalProps) {
     setSeasons([]);
     setPattern('');
     setPurchaseDate('');
+    setAiTags(null);
+    setSelectedFile(null);
+    setPreviewUrl('');
     onClose();
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-lg max-h-[90vh] p-0 bg-card">
+      <DialogContent className="max-w-lg max-h-[90vh] p-0">
         <DialogHeader className="p-6 pb-0">
-          <DialogTitle className="text-xl font-semibold text-foreground">Add New Item</DialogTitle>
+          <DialogTitle>Add New Item</DialogTitle>
         </DialogHeader>
 
-        <ScrollArea className="max-h-[70vh] px-6 pb-6">
-          <div className="space-y-6 pt-4">
+        <ScrollArea className="max-h-[calc(90vh-180px)] px-6">
+          <div className="space-y-6 py-4">
             {/* Image Upload Area */}
-            <div>
-              <Label className="text-foreground">Images *</Label>
+            <div className="space-y-3">
+              <Label>Images *</Label>
               
               {/* Uploaded Images Preview */}
               {images.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-2 mb-3">
+                <div className="flex flex-wrap gap-2">
                   {images.map((img, index) => (
-                    <div key={index} className="relative group w-20 h-20 rounded-lg overflow-hidden border border-border">
-                      <img src={img} alt={`Preview ${index + 1}`} className="w-full h-full object-cover" />
+                    <div key={index} className="relative w-20 h-20 rounded-lg overflow-hidden group">
+                      <img src={img} alt="" className="w-full h-full object-cover" />
                       <button
-                        type="button"
                         onClick={() => removeImage(index)}
                         className="absolute top-1 right-1 p-1 bg-background/80 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
                       >
-                        <X className="w-3 h-3 text-foreground" />
+                        <X className="w-3 h-3" />
                       </button>
                     </div>
                   ))}
                 </div>
               )}
 
+              {/* Selected file preview */}
+              {previewUrl && (
+                <div className="relative w-32 h-32 rounded-lg overflow-hidden border-2 border-dashed border-primary">
+                  <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
+                  <button
+                    onClick={() => {
+                      setSelectedFile(null);
+                      setPreviewUrl('');
+                    }}
+                    className="absolute top-1 right-1 p-1 bg-background/80 rounded-full"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              )}
+
               {/* Upload Buttons */}
-              <div className="border-2 border-dashed border-border rounded-xl p-6 text-center hover:border-primary transition-colors">
+              <div className="space-y-2">
                 <input
                   ref={fileInputRef}
                   type="file"
-                  accept="image/jpeg,image/png,image/webp,image/gif"
+                  accept="image/*"
                   onChange={handleFileSelect}
                   className="hidden"
                 />
-                <div className="flex flex-col items-center gap-2">
-                  <div className="flex gap-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      type="button"
-                      onClick={() => fileInputRef.current?.click()}
-                      disabled={isUploading}
-                    >
-                      {isUploading ? (
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      ) : (
-                        <Upload className="w-4 h-4 mr-2" />
-                      )}
-                      {isUploading ? 'Uploading...' : 'Upload'}
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      type="button"
-                      onClick={() => {
-                        // Trigger file input for mobile camera
-                        if (fileInputRef.current) {
-                          fileInputRef.current.setAttribute('capture', 'environment');
-                          fileInputRef.current.click();
-                          fileInputRef.current.removeAttribute('capture');
-                        }
-                      }}
-                      disabled={isUploading}
-                    >
-                      <Camera className="w-4 h-4 mr-2" />
-                      Camera
-                    </Button>
-                  </div>
-                  <p className="text-xs text-muted-foreground">JPEG, PNG, WebP, or GIF (max 5MB)</p>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isUploading || isProcessing}
+                  >
+                    <Upload className="w-4 h-4 mr-2" />
+                    Select Image
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      if (fileInputRef.current) {
+                        fileInputRef.current.setAttribute('capture', 'environment');
+                        fileInputRef.current.click();
+                        fileInputRef.current.removeAttribute('capture');
+                      }
+                    }}
+                    disabled={isUploading || isProcessing}
+                  >
+                    <Camera className="w-4 h-4 mr-2" />
+                    Camera
+                  </Button>
                 </div>
+
+                {/* Process & Upload Button */}
+                {selectedFile && (
+                  <Button
+                    type="button"
+                    onClick={processAndUpload}
+                    disabled={isProcessing}
+                    className="w-full"
+                  >
+                    {isProcessing ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Processing...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-4 h-4 mr-2" />
+                        Analyze & Upload
+                      </>
+                    )}
+                  </Button>
+                )}
+
+                <p className="text-xs text-muted-foreground">
+                  JPEG, PNG, WebP, or GIF (max 5MB)
+                </p>
               </div>
 
+              {/* AI Tags Display */}
+              {aiTags && (
+                <div className="p-3 bg-muted rounded-lg space-y-2">
+                  <p className="text-sm font-medium flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-primary" />
+                    AI Analysis
+                  </p>
+                  <div className="flex flex-wrap gap-1">
+                    {(aiTags.style as string[])?.map((tag: string) => (
+                      <span key={tag} className="px-2 py-0.5 bg-primary/10 text-primary text-xs rounded-full">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                  {aiTags.styling_tips && (
+                    <p className="text-xs text-muted-foreground">
+                      Tip: {(aiTags.styling_tips as string[])[0]}
+                    </p>
+                  )}
+                </div>
+              )}
+
               {/* URL Input */}
-              <div className="flex gap-2 mt-2">
+              <div className="flex gap-2">
                 <Input
-                  placeholder="Or paste an image URL"
+                  placeholder="Or paste image URL..."
                   value={imageUrl}
                   onChange={(e) => setImageUrl(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleAddUrlImage()}
                 />
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  type="button"
-                  onClick={handleAddUrlImage}
-                  disabled={!imageUrl.trim()}
-                >
+                <Button type="button" variant="outline" onClick={handleAddUrlImage}>
                   Add
                 </Button>
               </div>
@@ -241,10 +411,9 @@ export function AddItemModal({ isOpen, onClose, onAdd }: AddItemModalProps) {
 
             {/* Name */}
             <div>
-              <Label htmlFor="name" className="text-foreground">Name *</Label>
+              <Label>Name *</Label>
               <Input
-                id="name"
-                placeholder="e.g., Black Silk Hijab"
+                placeholder="e.g. Blue Denim Jacket"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 className="mt-1"
@@ -253,7 +422,7 @@ export function AddItemModal({ isOpen, onClose, onAdd }: AddItemModalProps) {
 
             {/* Category */}
             <div>
-              <Label className="text-foreground">Category *</Label>
+              <Label>Category *</Label>
               <Select value={category} onValueChange={(v) => setCategory(v as Category)}>
                 <SelectTrigger className="mt-1">
                   <SelectValue placeholder="Select category" />
@@ -269,20 +438,18 @@ export function AddItemModal({ isOpen, onClose, onAdd }: AddItemModalProps) {
             {/* Brand & Size */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="brand" className="text-foreground">Brand</Label>
+                <Label>Brand</Label>
                 <Input
-                  id="brand"
-                  placeholder="e.g., Zara"
+                  placeholder="e.g. Zara"
                   value={brand}
                   onChange={(e) => setBrand(e.target.value)}
                   className="mt-1"
                 />
               </div>
               <div>
-                <Label htmlFor="size" className="text-foreground">Size</Label>
+                <Label>Size</Label>
                 <Input
-                  id="size"
-                  placeholder="e.g., M"
+                  placeholder="e.g. M"
                   value={size}
                   onChange={(e) => setSize(e.target.value)}
                   className="mt-1"
@@ -293,9 +460,8 @@ export function AddItemModal({ isOpen, onClose, onAdd }: AddItemModalProps) {
             {/* Price & Pattern */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="price" className="text-foreground">Price ($)</Label>
+                <Label>Price ($)</Label>
                 <Input
-                  id="price"
                   type="number"
                   placeholder="0.00"
                   value={price}
@@ -304,10 +470,9 @@ export function AddItemModal({ isOpen, onClose, onAdd }: AddItemModalProps) {
                 />
               </div>
               <div>
-                <Label htmlFor="pattern" className="text-foreground">Pattern</Label>
+                <Label>Pattern</Label>
                 <Input
-                  id="pattern"
-                  placeholder="e.g., Solid, Floral"
+                  placeholder="e.g. Solid, Striped"
                   value={pattern}
                   onChange={(e) => setPattern(e.target.value)}
                   className="mt-1"
@@ -317,7 +482,7 @@ export function AddItemModal({ isOpen, onClose, onAdd }: AddItemModalProps) {
 
             {/* Colors */}
             <div>
-              <Label className="text-foreground">Colors</Label>
+              <Label>Colors</Label>
               <div className="flex flex-wrap gap-2 mt-2">
                 {COLORS.map(({ value, label, hex }) => (
                   <button
@@ -338,7 +503,7 @@ export function AddItemModal({ isOpen, onClose, onAdd }: AddItemModalProps) {
 
             {/* Occasions */}
             <div>
-              <Label className="text-foreground">Occasions</Label>
+              <Label>Occasions</Label>
               <div className="flex flex-wrap gap-2 mt-2">
                 {OCCASIONS.map(({ value, label }) => (
                   <button
@@ -359,7 +524,7 @@ export function AddItemModal({ isOpen, onClose, onAdd }: AddItemModalProps) {
 
             {/* Seasons */}
             <div>
-              <Label className="text-foreground">Seasons</Label>
+              <Label>Seasons</Label>
               <div className="flex flex-wrap gap-2 mt-2">
                 {SEASONS.map(({ value, label }) => (
                   <button
@@ -380,9 +545,8 @@ export function AddItemModal({ isOpen, onClose, onAdd }: AddItemModalProps) {
 
             {/* Purchase Date */}
             <div>
-              <Label htmlFor="purchaseDate" className="text-foreground">Purchase Date</Label>
+              <Label>Purchase Date</Label>
               <Input
-                id="purchaseDate"
                 type="date"
                 value={purchaseDate}
                 onChange={(e) => setPurchaseDate(e.target.value)}
@@ -393,15 +557,11 @@ export function AddItemModal({ isOpen, onClose, onAdd }: AddItemModalProps) {
         </ScrollArea>
 
         {/* Footer */}
-        <div className="p-4 border-t border-border flex gap-2">
-          <Button variant="outline" className="flex-1" onClick={onClose}>
+        <div className="flex gap-3 p-6 pt-0">
+          <Button variant="outline" onClick={onClose} className="flex-1">
             Cancel
           </Button>
-          <Button 
-            className="flex-1 gradient-rose text-primary-foreground border-0"
-            onClick={handleSubmit}
-            disabled={!name || !category || images.length === 0 || isUploading}
-          >
+          <Button onClick={handleSubmit} className="flex-1" disabled={!name || !category || images.length === 0}>
             Add Item
           </Button>
         </div>

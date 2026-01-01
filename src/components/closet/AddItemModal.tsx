@@ -131,30 +131,55 @@ export function AddItemModal({ isOpen, onClose, onAdd }: AddItemModalProps) {
       } else if (analysisData?.analysis) {
         const analysis = analysisData.analysis;
         setAiTags(analysis);
-        
-        // Auto-fill form fields from AI analysis
-        if (analysis.category && !category) {
-          setCategory(analysis.category);
-        }
-        if (analysis.color && colors.length === 0) {
-          setColors([analysis.color]);
-        }
-        if (analysis.brand && analysis.brand !== 'Unknown' && !brand) {
-          setBrand(analysis.brand);
-        }
-        if (analysis.name && !name) {
-          setName(analysis.name);
-        }
-        if (analysis.pattern && !pattern) {
-          setPattern(analysis.pattern);
-        }
-        if (analysis.occasion && occasions.length === 0) {
-          setOccasions(analysis.occasion);
-        }
-        if (analysis.season && seasons.length === 0) {
-          setSeasons(analysis.season);
-        }
-        
+
+        const allowedCategoryValues = new Set(CATEGORIES.map((c) => c.value));
+        const allowedColorValues = new Set(COLORS.map((c) => c.value));
+        const allowedOccasionValues = new Set(OCCASIONS.map((o) => o.value));
+        const allowedSeasonValues = new Set(SEASONS.map((s) => s.value));
+
+        const categoryAliases: Record<string, Category> = {
+          hijab: 'hijabs',
+          abaya: 'abayas',
+          top: 'tops',
+          bottom: 'bottoms',
+          dress: 'dresses',
+          accessory: 'accessories',
+          shoe: 'shoes',
+        };
+
+        const rawCategory = typeof analysis.category === 'string' ? analysis.category.toLowerCase().trim() : '';
+        const normalizedCategory = allowedCategoryValues.has(rawCategory)
+          ? rawCategory
+          : categoryAliases[rawCategory] ?? '';
+
+        const rawColor = typeof analysis.color === 'string' ? analysis.color.toLowerCase().trim() : '';
+        const normalizedColor = allowedColorValues.has(rawColor) ? rawColor : '';
+
+        const normalizedBrand = typeof analysis.brand === 'string' ? analysis.brand.trim() : '';
+        const normalizedName = typeof analysis.name === 'string' ? analysis.name.trim() : '';
+        const normalizedPattern = typeof analysis.pattern === 'string' ? analysis.pattern.trim() : '';
+
+        const normalizedOccasions: Occasion[] = Array.isArray(analysis.occasion)
+          ? analysis.occasion
+              .map((o: unknown) => (typeof o === 'string' ? o.toLowerCase().trim() : ''))
+              .filter((o): o is Occasion => allowedOccasionValues.has(o as Occasion))
+          : [];
+
+        const normalizedSeasons: Season[] = Array.isArray(analysis.season)
+          ? analysis.season
+              .map((s: unknown) => (typeof s === 'string' ? s.toLowerCase().trim() : ''))
+              .filter((s): s is Season => allowedSeasonValues.has(s as Season))
+          : [];
+
+        // Auto-fill form fields from AI analysis (validated against allowed values)
+        if (normalizedCategory && !category) setCategory(normalizedCategory);
+        if (normalizedColor && colors.length === 0) setColors([normalizedColor]);
+        if (normalizedBrand && normalizedBrand !== 'Unknown' && !brand) setBrand(normalizedBrand);
+        if (normalizedName && !name) setName(normalizedName);
+        if (normalizedPattern && !pattern) setPattern(normalizedPattern);
+        if (normalizedOccasions.length > 0 && occasions.length === 0) setOccasions(normalizedOccasions);
+        if (normalizedSeasons.length > 0 && seasons.length === 0) setSeasons(normalizedSeasons);
+
         toast({
           title: "Analysis complete!",
           description: "Form fields have been auto-filled.",
@@ -249,7 +274,14 @@ export function AddItemModal({ isOpen, onClose, onAdd }: AddItemModalProps) {
   };
 
   const handleSubmit = () => {
-    if (!name || !category || images.length === 0) return;
+    if (!name || !category || images.length === 0) {
+      toast({
+        title: "Missing required fields",
+        description: "Please add an image, name, and category.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     onAdd({
       name,

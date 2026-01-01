@@ -178,10 +178,12 @@ export function useCloset() {
   };
 
   // Add item
-  const addItem = async (item: Omit<ClosetItem, 'id' | 'createdAt' | 'wornCount' | 'lastWorn'>) => {
+  const addItem = async (
+    item: Omit<ClosetItem, 'id' | 'createdAt' | 'wornCount' | 'lastWorn'>
+  ): Promise<boolean> => {
     if (!user) {
       toast.error('Please sign in to add items');
-      return;
+      return false;
     }
 
     try {
@@ -226,9 +228,13 @@ export function useCloset() {
 
       setItems(prev => [newItem, ...prev]);
       toast.success('Item added to closet');
+      return true;
     } catch (error) {
       console.error('Error adding item:', error);
-      toast.error('Failed to add item');
+      const err = error as { message?: string; details?: string; hint?: string };
+      const description = [err?.message, err?.details, err?.hint].filter(Boolean).join(' — ');
+      toast.error('Failed to add item', description ? { description } : undefined);
+      return false;
     }
   };
 

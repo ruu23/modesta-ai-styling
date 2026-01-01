@@ -20,20 +20,84 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY is not configured');
     }
 
+    if (typeof imageBase64 !== 'string' || imageBase64.length < 50) {
+      return new Response(JSON.stringify({ error: 'Invalid imageBase64' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     console.log('Processing clothing image for e-commerce...');
 
-    // For now, skip image processing and just return the original image
-    // The image generation feature requires a different approach
-    // This allows the analyze + upload flow to work
-    console.log('Returning original image (image processing skipped for now)');
-    
-    return new Response(JSON.stringify({ 
-      processedImage: imageBase64,
-      note: 'Original image used - AI image processing pending'
-    }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-2.5-flash-image-preview',
+        messages: [
+          {
+            role: 'user',
+            content: [
+              {
+                type: 'text',
+                text: `Transform this clothing item into a professional e-commerce product photo:
+- Use a pure white background (#FFFFFF)
+- Center the item perfectly with correct proportions
+- Smooth the fabric, remove wrinkles, shadows, and noise
+- Keep the item well-structured, neat, and polished like premium fashion websites
+- Natural lighting, soft shadow only if needed
+- No distortion, no filters, no props, no model
+- High-quality, professional, minimalist clothing catalog style
+- The output should look like a product photo from a luxury fashion e-commerce site`,
+              },
+              { type: 'image_url', image_url: { url: imageBase64 } },
+            ],
+          },
+        ],
+        modalities: ['image', 'text'],
+      }),
     });
 
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('AI Gateway error:', response.status, errorText);
+
+      if (response.status === 429) {
+        return new Response(JSON.stringify({ error: 'Rate limit exceeded. Please try again in a moment.' }), {
+          status: 429,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      if (response.status === 402) {
+        return new Response(JSON.stringify({ error: 'AI credits exhausted. Please add credits to continue.' }), {
+          status: 402,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      return new Response(JSON.stringify({ error: `AI Gateway error: ${response.status}` }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const data = await response.json();
+    console.log('Image processing response received');
+
+    const processedImage = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+
+    if (!processedImage) {
+      console.error('No image in response:', JSON.stringify(data));
+      throw new Error('No processed image returned from AI');
+    }
+
+    return new Response(JSON.stringify({ processedImage }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     console.error('Error in process-clothing-image:', errorMessage);

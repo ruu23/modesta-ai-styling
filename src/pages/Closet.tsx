@@ -106,13 +106,21 @@ export default function Closet() {
   }, []);
 
   const handleAddItem = useCallback((item: Parameters<typeof addItem>[0]) => {
-    addItem(item);
-    toast({
-      title: "Item Added",
-      description: "Your new item has been added to the closet!",
+    addItem(item).then((ok) => {
+      if (ok) {
+        toast({
+          title: "Item Added",
+          description: "Your new item has been added to the closet!",
+        });
+      } else {
+        toast({
+          title: "Failed to add item",
+          description: "Please check the details and try again.",
+          variant: "destructive",
+        });
+      }
     });
   }, [addItem, toast]);
-
   const similarItems = useMemo(() => 
     selectedItem ? findSimilarItems(selectedItem) : [], 
     [selectedItem, findSimilarItems]

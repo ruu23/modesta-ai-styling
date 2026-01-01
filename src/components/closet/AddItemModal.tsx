@@ -118,27 +118,46 @@ export function AddItemModal({ isOpen, onClose, onAdd }: AddItemModalProps) {
       });
 
       const { data: analysisData, error: analysisError } = await supabase.functions.invoke('analyze-clothing', {
-        body: {
-          imageBase64: base64,
-          category: category || 'unknown',
-          color: colors[0] || 'unknown',
-          brand: brand || 'unknown',
-        },
+        body: { imageBase64: base64 },
       });
 
       if (analysisError) {
         console.error('Analysis error:', analysisError);
-      } else if (analysisData?.tags) {
-        setAiTags(analysisData.tags);
+        toast({
+          title: "Analysis failed",
+          description: "Could not analyze image, but will continue with upload.",
+          variant: "destructive",
+        });
+      } else if (analysisData?.analysis) {
+        const analysis = analysisData.analysis;
+        setAiTags(analysis);
         
-        // Auto-fill pattern if detected
-        if (analysisData.tags.pattern && !pattern) {
-          setPattern(analysisData.tags.pattern);
+        // Auto-fill form fields from AI analysis
+        if (analysis.category && !category) {
+          setCategory(analysis.category);
+        }
+        if (analysis.color && colors.length === 0) {
+          setColors([analysis.color]);
+        }
+        if (analysis.brand && analysis.brand !== 'Unknown' && !brand) {
+          setBrand(analysis.brand);
+        }
+        if (analysis.name && !name) {
+          setName(analysis.name);
+        }
+        if (analysis.pattern && !pattern) {
+          setPattern(analysis.pattern);
+        }
+        if (analysis.occasion && occasions.length === 0) {
+          setOccasions(analysis.occasion);
+        }
+        if (analysis.season && seasons.length === 0) {
+          setSeasons(analysis.season);
         }
         
         toast({
           title: "Analysis complete!",
-          description: "AI tags have been generated.",
+          description: "Form fields have been auto-filled.",
         });
       }
 
@@ -156,6 +175,10 @@ export function AddItemModal({ isOpen, onClose, onAdd }: AddItemModalProps) {
 
       if (processError || !processData?.processedImage) {
         console.error('Image processing error:', processError);
+        toast({
+          title: "Using original image",
+          description: "Image processing unavailable, uploading original.",
+        });
         // Fallback: upload original image
         const url = await uploadImage(selectedFile);
         if (!url) throw new Error('Failed to upload image');

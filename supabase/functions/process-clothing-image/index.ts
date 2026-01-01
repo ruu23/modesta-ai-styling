@@ -20,7 +20,7 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY is not configured');
     }
 
-    console.log('Analyzing clothing image...');
+    console.log('Processing clothing image for e-commerce...');
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -29,31 +29,28 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
+        model: 'google/gemini-2.5-flash-image-preview',
         messages: [
-          {
-            role: 'system',
-            content: `You are a fashion AI assistant specialized in analyzing clothing images. Analyze the clothing item and return a JSON object with these exact fields:
-- category: one of "hijabs", "abayas", "tops", "bottoms", "dresses", "outerwear", "accessories", "shoes"
-- color: the primary color as one of "black", "white", "beige", "navy", "rose", "burgundy", "olive", "brown", "gray", "blue", "green", "pink"
-- brand: detected brand name or "Unknown" if not visible
-- name: a descriptive name for the item (e.g. "Navy Blue Cotton Hijab")
-- pattern: one of "solid", "striped", "floral", "geometric", "abstract", "plaid", "printed"
-- style: one of "casual", "formal", "sporty", "bohemian", "minimalist", "streetwear", "elegant"
-- season: array of applicable seasons from "spring", "summer", "fall", "winter"
-- occasion: array from "casual", "formal", "work", "weekend", "evening", "special"
-- styling_tips: array of 2-3 short styling tips
-
-Return ONLY valid JSON, no other text.`
-          },
           {
             role: 'user',
             content: [
-              { type: 'text', text: 'Analyze this clothing item and return the JSON analysis.' },
+              { 
+                type: 'text', 
+                text: `Transform this clothing item into a professional e-commerce product photo:
+- Use a pure white background (#FFFFFF)
+- Center the item perfectly with correct proportions
+- Smooth the fabric, remove wrinkles, shadows, and noise
+- Keep the item well-structured, neat, and polished like premium fashion websites
+- Natural lighting, soft shadow only if needed
+- No distortion, no filters, no props, no model
+- High-quality, professional, minimalist clothing catalog style
+- The output should look like a product photo from a luxury fashion e-commerce site`
+              },
               { type: 'image_url', image_url: { url: imageBase64 } }
             ]
           }
         ],
+        modalities: ['image', 'text']
       }),
     });
 
@@ -64,22 +61,22 @@ Return ONLY valid JSON, no other text.`
     }
 
     const data = await response.json();
-    const content = data.choices[0].message.content;
-    
-    console.log('AI Response:', content);
-    
-    // Parse JSON from response
-    const jsonMatch = content.match(/\{[\s\S]*\}/);
-    const analysis = jsonMatch ? JSON.parse(jsonMatch[0]) : {};
+    console.log('Image processing response received');
 
-    console.log('Parsed analysis:', analysis);
+    // Extract the processed image from the response
+    const processedImage = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
 
-    return new Response(JSON.stringify({ analysis }), {
+    if (!processedImage) {
+      console.error('No image in response:', JSON.stringify(data));
+      throw new Error('No processed image returned from AI');
+    }
+
+    return new Response(JSON.stringify({ processedImage }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    console.error('Error in analyze-clothing:', errorMessage);
+    console.error('Error in process-clothing-image:', errorMessage);
     return new Response(JSON.stringify({ error: errorMessage }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

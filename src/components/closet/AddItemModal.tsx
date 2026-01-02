@@ -27,7 +27,7 @@ import {
   CATEGORIES, 
   OCCASIONS, 
   SEASONS, 
-  COLOR 
+  COLORS 
 } from '@/types/closet';
 
 interface AddItemModalProps {
@@ -37,7 +37,7 @@ interface AddItemModalProps {
     name: string;
     images: string[];
     category: Category;
-    color: string[];
+    colors: string[];
     brand: string;
     size: string;
     price: number;
@@ -58,7 +58,7 @@ export function AddItemModal({ isOpen, onClose, onAdd }: AddItemModalProps) {
   const [images, setImages] = useState<string[]>([]);
   const [imageUrl, setImageUrl] = useState('');
   const [category, setCategory] = useState('');
-  const [color, setColor] = useState<string[]>([]);
+  const [colors, setColors] = useState<string[]>([]);
   const [brand, setBrand] = useState('');
   const [size, setSize] = useState('');
   const [price, setPrice] = useState('');
@@ -133,7 +133,7 @@ export function AddItemModal({ isOpen, onClose, onAdd }: AddItemModalProps) {
         setAiTags(analysis);
 
         const allowedCategoryValues = new Set(CATEGORIES.map((c) => c.value));
-        const allowedColorValues = new Set(COLOR.map((c) => c.value));
+        const allowedColorValues = new Set(COLORS.map((c) => c.value));
         const allowedOccasionValues = new Set(OCCASIONS.map((o) => o.value));
         const allowedSeasonValues = new Set(SEASONS.map((s) => s.value));
 
@@ -173,7 +173,7 @@ export function AddItemModal({ isOpen, onClose, onAdd }: AddItemModalProps) {
 
         // Auto-fill form fields from AI analysis (validated against allowed values)
         if (normalizedCategory && !category) setCategory(normalizedCategory);
-        if (normalizedColor && color.length === 0) setColor([normalizedColor]);
+        if (normalizedColor && colors.length === 0) setColors([normalizedColor]);
         if (normalizedBrand && normalizedBrand !== 'Unknown' && !brand) setBrand(normalizedBrand);
         if (normalizedName && !name) setName(normalizedName);
         if (normalizedPattern && !pattern) setPattern(normalizedPattern);
@@ -255,9 +255,9 @@ export function AddItemModal({ isOpen, onClose, onAdd }: AddItemModalProps) {
     setImages(prev => prev.filter((_, i) => i !== index));
   };
 
-  const toggleColor = (color: string) => {
-    setColor(prev => 
-      prev.includes(color) ? prev.filter(c => c !== color) : [...prev, color]
+  const toggleColor = (colorValue: string) => {
+    setColors(prev => 
+      prev.includes(colorValue) ? prev.filter(c => c !== colorValue) : [...prev, colorValue]
     );
   };
 
@@ -287,7 +287,7 @@ export function AddItemModal({ isOpen, onClose, onAdd }: AddItemModalProps) {
       name,
       images,
       category: category as Category,
-      color,
+      colors,
       brand,
       size,
       price: parseFloat(price) || 0,
@@ -303,7 +303,7 @@ export function AddItemModal({ isOpen, onClose, onAdd }: AddItemModalProps) {
     setImages([]);
     setImageUrl('');
     setCategory('');
-    setColor([]);
+    setColors([]);
     setBrand('');
     setSize('');
     setPrice('');
@@ -535,17 +535,17 @@ export function AddItemModal({ isOpen, onClose, onAdd }: AddItemModalProps) {
               </div>
             </div>
 
-            {/* Color */}
+            {/* Colors */}
             <div>
-              <Label>Color</Label>
+              <Label>Colors</Label>
               <div className="flex flex-wrap gap-2 mt-2">
-                {COLOR.map(({ value, label, hex }) => (
+                {COLORS.map(({ value, label, hex }) => (
                   <button
                     key={value}
                     type="button"
                     onClick={() => toggleColor(value)}
                     className={`w-8 h-8 rounded-full border-2 transition-all ${
-                      color.includes(value)
+                      colors.includes(value)
                         ? 'border-primary scale-110'
                         : 'border-border hover:border-muted-foreground'
                     }`}

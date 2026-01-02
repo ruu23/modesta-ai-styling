@@ -36,8 +36,13 @@ export function ItemDetailModal({
   if (!item) return null;
 
   const categoryLabel = CATEGORIES.find(c => c.value === item.category)?.label || item.category;
-  const occasionLabels = item.occasions.map(o => OCCASIONS.find(oc => oc.value === o)?.label || o);
-  const seasonLabels = item.seasons.map(s => SEASONS.find(se => se.value === s)?.label || s);
+
+  const safeColors = Array.isArray(item.colors) ? item.colors : [];
+  const safeOccasions = Array.isArray(item.occasions) ? item.occasions : [];
+  const safeSeasons = Array.isArray(item.seasons) ? item.seasons : [];
+
+  const occasionLabels = safeOccasions.map(o => OCCASIONS.find(oc => oc.value === o)?.label || o);
+  const seasonLabels = safeSeasons.map(s => SEASONS.find(se => se.value === s)?.label || s);
 
   const nextImage = () => {
     setCurrentImageIndex((prev) => (prev + 1) % item.images.length);
@@ -135,7 +140,7 @@ export function ItemDetailModal({
                 <div>
                   <p className="text-sm text-muted-foreground mb-2">Colors</p>
                   <div className="flex gap-2">
-                    {item.colors.map(colorValue => {
+                    {safeColors.map(colorValue => {
                       const color = COLORS.find(c => c.value === colorValue);
                       return (
                         <div key={colorValue} className="flex items-center gap-1.5">

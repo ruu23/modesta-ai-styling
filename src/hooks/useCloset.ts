@@ -187,6 +187,9 @@ export function useCloset() {
     }
 
     try {
+      // Ensure numeric fields are never empty strings
+      const priceValue = typeof item.price === 'number' && !isNaN(item.price) ? item.price : 0;
+      
       const { data, error } = await supabase
         .from('closet_items')
         .insert({
@@ -195,12 +198,12 @@ export function useCloset() {
           images: item.images,
           category: item.category,
           colors: item.colors,
-          brand: item.brand,
-          size: item.size,
-          price: item.price,
+          brand: item.brand || null,
+          size: item.size || null,
+          price: priceValue,
           occasions: item.occasions,
           seasons: item.seasons,
-          pattern: item.pattern,
+          pattern: item.pattern || null,
           purchase_date: item.purchaseDate || null,
         })
         .select()

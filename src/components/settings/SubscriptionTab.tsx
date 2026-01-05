@@ -1,16 +1,18 @@
-import { Check, Zap, Crown, Clock, Wallet, CreditCard, ArrowLeft, Receipt } from 'lucide-react';
+import { Check, Zap, Crown, Clock, CreditCard, ArrowLeft, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
-// Utility function for class names
 const cn = (...classes: (string | boolean | undefined)[]) => {
   return classes.filter(Boolean).join(' ');
 };
 
-// Mock hooks for demo
 const useSubscription = () => ({
   subscription: {
     plan: null,
@@ -35,6 +37,7 @@ const PLANS = [
     id: 'monthly',
     name: 'Premium',
     price: 129,
+    priceEGP: 6450,
     icon: Zap,
     popular: true,
     period: 'month',
@@ -51,6 +54,7 @@ const PLANS = [
     id: 'yearly',
     name: 'Pro',
     price: 1200,
+    priceEGP: 60000,
     icon: Crown,
     period: 'year',
     savings: 348,
@@ -65,20 +69,36 @@ const PLANS = [
   },
 ];
 
-const E_WALLETS = [
-  { id: 'vodafone-cash', name: 'Vodafone Cash', color: 'bg-red-500' },
-  { id: 'orange-money', name: 'Orange Money', color: 'bg-orange-500' },
-  { id: 'etisalat-cash', name: 'Etisalat Cash', color: 'bg-green-500' },
-  { id: 'we-pay', name: 'WE Pay', color: 'bg-purple-500' },
-];
+interface Plan {
+  id: string;
+  name: string;
+  price: number;
+  priceEGP: number;
+  icon: React.ElementType;
+  popular?: boolean;
+  period: string;
+  savings?: number;
+  features: string[];
+}
+
+interface BillingData {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+}
 
 export default function SubscriptionTab() {
-  const { subscription, loading, updatePlan, cancelSubscription } = useSubscription();
-  const [currentPage, setCurrentPage] = useState('plans'); // 'plans' or 'payment'
-  const [selectedPlan, setSelectedPlan] = useState(null);
-  const [showWalletInput, setShowWalletInput] = useState(false);
-  const [selectedWallet, setSelectedWallet] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('');
+  const { subscription, loading, cancelSubscription } = useSubscription();
+  const [currentPage, setCurrentPage] = useState<'plans' | 'payment'>('plans');
+  const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [billingData, setBillingData] = useState<BillingData>({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+  });
 
   if (loading) {
     return (
@@ -106,51 +126,71 @@ export default function SubscriptionTab() {
     ? Math.ceil((new Date(subscription.trial_ends_at).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) + ' days'
     : null;
 
-  const handleSelectPlan = (plan) => {
+  const handleSelectPlan = (plan: Plan) => {
     setSelectedPlan(plan);
     setCurrentPage('payment');
-  };
-
-  const handlePayWithWallet = (walletId) => {
-    const wallet = E_WALLETS.find(w => w.id === walletId);
-    setSelectedWallet(wallet?.name || '');
-    setShowWalletInput(true);
-  };
-
-  const handleWalletSubmit = () => {
-    if (phoneNumber) {
-      alert(`✓ Payment successful via ${selectedWallet}!\nPhone: ${phoneNumber}\nPlan: ${selectedPlan?.name} - $${selectedPlan?.price}/${selectedPlan?.period}`);
-      setShowWalletInput(false);
-      setPhoneNumber('');
-      setSelectedWallet('');
-      setCurrentPage('plans');
-      setSelectedPlan(null);
-    }
   };
 
   const handleBackToPlans = () => {
     setCurrentPage('plans');
     setSelectedPlan(null);
-    setShowWalletInput(false);
-    setPhoneNumber('');
-    setSelectedWallet('');
+    setBillingData({ firstName: '', lastName: '', email: '', phone: '' });
   };
 
-  // Page 1: Plans Selection
+  const handlePayWithCard = async () => {
+    if (!selectedPlan) return;
+
+    if (!billingData.firstName || !billingData.lastName || !billingData.email || !billingData.phone) {
+      toast.error('Please fill in all billing details');
+      return;
+    }
+
+    setIsProcessing(true);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('paymob-payment', {
+        body: {
+          amount_cents: selectedPlan.priceEGP * 100,
+          currency: 'EGP',
+          billing_data: {
+            first_name: billingData.firstName,
+            last_name: billingData.lastName,
+            email: billingData.email,
+            phone_number: billingData.phone,
+          },
+          plan_id: selectedPlan.id,
+        },
+      });
+
+      if (error) throw error;
+
+      if (data?.iframe_url) {
+        window.open(data.iframe_url, '_blank');
+        toast.success('Payment page opened in new tab');
+      } else {
+        throw new Error('Failed to get payment URL');
+      }
+    } catch (error: any) {
+      console.error('Payment error:', error);
+      toast.error(error.message || 'Payment failed. Please try again.');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   if (currentPage === 'plans') {
     return (
       <div className="space-y-6 p-6 max-w-6xl mx-auto">
-        {/* Trial Banner */}
         {isTrialActive && (
-          <Card className="border-amber-500 bg-gradient-to-r from-amber-50 to-orange-50">
+          <Card className="border-amber-500 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20">
             <CardContent className="pt-6">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-full bg-amber-100">
-                  <Clock className="h-5 w-5 text-amber-600" />
+                <div className="p-2 rounded-full bg-amber-100 dark:bg-amber-900/50">
+                  <Clock className="h-5 w-5 text-amber-600 dark:text-amber-400" />
                 </div>
                 <div>
-                  <p className="font-semibold text-amber-900">Free Trial Active</p>
-                  <p className="text-sm text-amber-700">
+                  <p className="font-semibold text-amber-900 dark:text-amber-100">Free Trial Active</p>
+                  <p className="text-sm text-amber-700 dark:text-amber-300">
                     {trialTimeLeft} remaining. Choose a plan to continue after trial.
                   </p>
                 </div>
@@ -159,7 +199,6 @@ export default function SubscriptionTab() {
           </Card>
         )}
 
-        {/* Current Plan (if exists) */}
         {currentPlan && (
           <Card className="border-primary">
             <CardHeader>
@@ -172,9 +211,7 @@ export default function SubscriptionTab() {
                       <Badge variant="secondary">Trial</Badge>
                     )}
                   </CardTitle>
-                  <CardDescription>
-                    Active subscription
-                  </CardDescription>
+                  <CardDescription>Active subscription</CardDescription>
                 </div>
                 <div className="text-right">
                   <p className="text-3xl font-bold">${subscription.price}</p>
@@ -195,7 +232,6 @@ export default function SubscriptionTab() {
           </Card>
         )}
 
-        {/* Usage Stats */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -213,17 +249,13 @@ export default function SubscriptionTab() {
               </div>
               <Progress value={0} className="h-2" />
             </div>
-
             <div className="flex items-center justify-between py-2 border-t">
               <span className="text-sm">Closet Items</span>
-              <span className="font-medium">
-                {subscription.usage.closetItems}
-              </span>
+              <span className="font-medium">{subscription.usage.closetItems}</span>
             </div>
           </CardContent>
         </Card>
 
-        {/* Plan Options */}
         <Card>
           <CardHeader>
             <CardTitle>Available Plans</CardTitle>
@@ -259,6 +291,9 @@ export default function SubscriptionTab() {
                       ${plan.price}
                       <span className="text-sm font-normal text-muted-foreground">/{plan.period === 'month' ? 'mo' : 'yr'}</span>
                     </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      ({plan.priceEGP.toLocaleString()} EGP)
+                    </p>
                   </div>
                   <ul className="space-y-3 mb-6">
                     {plan.features.map((feature) => (
@@ -282,7 +317,6 @@ export default function SubscriptionTab() {
           </CardContent>
         </Card>
 
-        {/* Cancel Subscription */}
         {subscription.status !== 'cancelled' && subscription.plan && (
           <Card className="border-destructive/20">
             <CardContent className="pt-6">
@@ -304,133 +338,126 @@ export default function SubscriptionTab() {
     );
   }
 
-  // Page 2: Payment Options
-  if (currentPage === 'payment') {
-    return (
-      <div className="space-y-6 p-6 max-w-4xl mx-auto">
-        {/* Back Button */}
-        <Button variant="ghost" onClick={handleBackToPlans} className="gap-2">
-          <ArrowLeft className="h-4 w-4" />
-          Back to Plans
-        </Button>
+  // Payment Page
+  return (
+    <div className="space-y-6 p-6 max-w-4xl mx-auto">
+      <Button variant="ghost" onClick={handleBackToPlans} className="gap-2">
+        <ArrowLeft className="h-4 w-4" />
+        Back to Plans
+      </Button>
 
-        {/* Selected Plan Summary */}
-        <Card className="border-primary">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              {selectedPlan?.icon && <selectedPlan.icon className="h-5 w-5 text-primary" />}
-              {selectedPlan?.name} Plan
-            </CardTitle>
-            <CardDescription>Complete your purchase</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between">
-              <div className="space-y-2">
-                {selectedPlan?.features.slice(0, 3).map((feature) => (
-                  <div key={feature} className="flex items-center gap-2 text-sm">
-                    <Check className="h-4 w-4 text-green-500" />
-                    {feature}
-                  </div>
-                ))}
+      <Card className="border-primary">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            {selectedPlan?.icon && <selectedPlan.icon className="h-5 w-5 text-primary" />}
+            {selectedPlan?.name} Plan
+          </CardTitle>
+          <CardDescription>Complete your purchase</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between">
+            <div className="space-y-2">
+              {selectedPlan?.features.slice(0, 3).map((feature) => (
+                <div key={feature} className="flex items-center gap-2 text-sm">
+                  <Check className="h-4 w-4 text-green-500" />
+                  {feature}
+                </div>
+              ))}
+            </div>
+            <div className="text-right">
+              <p className="text-3xl font-bold">{selectedPlan?.priceEGP.toLocaleString()} EGP</p>
+              <p className="text-sm text-muted-foreground">/${selectedPlan?.price} USD/{selectedPlan?.period}</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <CreditCard className="h-5 w-5" />
+            Billing Details
+          </CardTitle>
+          <CardDescription>Enter your information to proceed with payment</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="firstName">First Name</Label>
+              <Input
+                id="firstName"
+                placeholder="John"
+                value={billingData.firstName}
+                onChange={(e) => setBillingData(prev => ({ ...prev, firstName: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="lastName">Last Name</Label>
+              <Input
+                id="lastName"
+                placeholder="Doe"
+                value={billingData.lastName}
+                onChange={(e) => setBillingData(prev => ({ ...prev, lastName: e.target.value }))}
+              />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              placeholder="john@example.com"
+              value={billingData.email}
+              onChange={(e) => setBillingData(prev => ({ ...prev, email: e.target.value }))}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="phone">Phone Number</Label>
+            <Input
+              id="phone"
+              type="tel"
+              placeholder="01XXXXXXXXX"
+              value={billingData.phone}
+              onChange={(e) => setBillingData(prev => ({ ...prev, phone: e.target.value }))}
+            />
+          </div>
+
+          <div className="pt-4 border-t">
+            <div className="p-4 bg-muted rounded-lg space-y-2 mb-4">
+              <div className="flex justify-between text-sm">
+                <span>Plan:</span>
+                <span className="font-medium">{selectedPlan?.name}</span>
               </div>
-              <div className="text-right">
-                <p className="text-3xl font-bold">${selectedPlan?.price}</p>
-                <p className="text-sm text-muted-foreground">/{selectedPlan?.period}</p>
+              <div className="flex justify-between text-sm">
+                <span>Period:</span>
+                <span className="font-medium">{selectedPlan?.period === 'month' ? 'Monthly' : 'Yearly'}</span>
+              </div>
+              <div className="flex justify-between text-sm pt-2 border-t">
+                <span className="font-semibold">Total:</span>
+                <span className="font-bold text-primary">{selectedPlan?.priceEGP.toLocaleString()} EGP</span>
               </div>
             </div>
-          </CardContent>
-        </Card>
 
-        {/* Payment Options */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Wallet className="h-5 w-5" />
-              Payment Options
-            </CardTitle>
-            <CardDescription>Pay securely with your preferred method</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {!showWalletInput ? (
-              <>
-                <div className="space-y-3">
-                  <p className="text-sm font-medium text-muted-foreground">E-Wallets</p>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    {E_WALLETS.map((wallet) => (
-                      <Button
-                        key={wallet.id}
-                        variant="outline"
-                        className="h-16 flex flex-col items-center justify-center gap-2"
-                        onClick={() => handlePayWithWallet(wallet.id)}
-                      >
-                        <span className={`w-4 h-4 rounded-full ${wallet.color}`} />
-                        <span className="text-xs text-center leading-tight">{wallet.name}</span>
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="relative py-4">
-                  <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t" />
-                  </div>
-                  <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-card px-2 text-muted-foreground">Or pay with card</span>
-                  </div>
-                </div>
-
-                <Button variant="outline" className="w-full h-14 flex items-center justify-center gap-2">
+            <Button 
+              onClick={handlePayWithCard} 
+              className="w-full h-14 text-lg gap-2"
+              disabled={isProcessing}
+            >
+              {isProcessing ? (
+                <>
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                <>
                   <CreditCard className="h-5 w-5" />
-                  Add Credit or Debit Card
-                </Button>
-              </>
-            ) : (
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 p-3 bg-muted rounded-lg">
-                  <span className={`w-4 h-4 rounded-full ${E_WALLETS.find(w => w.name === selectedWallet)?.color}`} />
-                  <span className="font-medium">{selectedWallet}</span>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Phone Number</label>
-                  <input
-                    type="tel"
-                    placeholder="01XXXXXXXXX"
-                    value={phoneNumber}
-                    onChange={(e) => setPhoneNumber(e.target.value)}
-                    className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                  />
-                </div>
-                <div className="p-4 bg-muted rounded-lg space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span>Plan:</span>
-                    <span className="font-medium">{selectedPlan?.name}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span>Amount:</span>
-                    <span className="font-medium">${selectedPlan?.price}</span>
-                  </div>
-                  <div className="flex justify-between text-sm pt-2 border-t">
-                    <span className="font-semibold">Total:</span>
-                    <span className="font-bold text-primary">${selectedPlan?.price}</span>
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  <Button onClick={handleWalletSubmit} className="flex-1" disabled={!phoneNumber}>
-                    Complete Payment
-                  </Button>
-                  <Button variant="outline" onClick={() => {
-                    setShowWalletInput(false);
-                    setPhoneNumber('');
-                    setSelectedWallet('');
-                  }}>
-                    Cancel
-                  </Button>
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+                  Pay with Card
+                </>
+              )}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
 }

@@ -127,7 +127,7 @@ const Settings = () => {
 
             {/* Subscription Tab */}
             <TabsContent value="subscription" className="animate-fade-in" id="subscription-panel" role="tabpanel" aria-labelledby="subscription-tab">
-              <SubscriptionTab subscription={subscription} />
+              <SubscriptionTab />
             </TabsContent>
 
             {/* Accessibility Tab */}

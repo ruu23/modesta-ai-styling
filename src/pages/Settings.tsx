@@ -7,7 +7,7 @@ import { ProfileTab } from '@/components/settings/ProfileTab';
 import { PreferencesTab } from '@/components/settings/PreferencesTab';
 import { MeasurementsTab } from '@/components/settings/MeasurementsTab';
 import { AccountTab } from '@/components/settings/AccountTab';
-import { SubscriptionTab } from '@/components/settings/SubscriptionTab';
+import SubscriptionTab from '@/components/settings/SubscriptionTab';
 import { AccessibilityPanel } from '@/components/accessibility';
 import { ThemeToggle } from '@/components/theme';
 import { AppLayout } from '@/components/layout';
